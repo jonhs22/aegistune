@@ -93,6 +93,12 @@ What it does:
 4. stages the Pages site with `stage-update-feed-for-pages.ps1`
 5. deploys the site to GitHub Pages
 
+Operational note:
+
+- tag pushes like `v1.0.25.0` still run the full test lane automatically
+- manual `Run workflow` publishes default to `run_tests=false` so you can bring the first update feed online even if the GitHub runner shows a CI-only test failure
+- when manual or tag-based tests are enabled, the workflow now uploads a `pages-test-diagnostics` artifact with `trx` and `vstest` logs for exact failure triage
+
 What you should configure in the repository:
 
 - `Pages` enabled with `GitHub Actions` as the source

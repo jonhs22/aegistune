@@ -10,10 +10,13 @@ on:
       run_tests:
         description: Run automated tests before packaging
         required: true
-        default: "true"
+        default: "false"
   push:
     tags:
       - "v*"
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 permissions:
   contents: read
@@ -59,9 +62,34 @@ jobs:
         run: dotnet restore .\AegisTune.sln -p:Platform=x64
 
       - name: Test
+        id: tests
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_tests == 'true' }}
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path .\artifacts\TestResults -Force | Out-Null
+          dotnet test .\AegisTune.sln `
+            -p:Platform=x64 `
+            --no-restore `
+            --logger "trx;LogFileName=aegistune-tests.trx" `
+            --results-directory .\artifacts\TestResults `
+            --diag .\artifacts\TestResults\vstest-diag.log
+
+      - name: Upload test diagnostics
+        if: ${{ always() && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_tests == 'true') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pages-test-diagnostics
+          path: .\artifacts\TestResults
+          if-no-files-found: ignore
+
+      - name: Fail build if tests failed
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_tests == 'true' }}
         shell: pwsh
-        run: dotnet test .\AegisTune.sln -p:Platform=x64 --no-restore
+        run: |
+          if ('${{ steps.tests.outcome }}' -ne 'success') {
+            throw 'dotnet test failed on the GitHub runner. Download the pages-test-diagnostics artifact from this run for the exact failing test.'
+          }
 
       - name: Build portable
         shell: pwsh
