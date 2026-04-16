@@ -83,39 +83,31 @@ New-Item -ItemType Directory -Force -Path $siteRootFullPath | Out-Null
 
 $channelOutputDirectory = Resolve-RepoPath -Path (Join-Path $siteRootFullPath (Join-Path $normalizedProductPath $Channel))
 
-$prepareArgs = @(
-    "-NoProfile"
-    "-ExecutionPolicy"
-    "Bypass"
-    "-File"
-    $prepareScriptPath
-    "-Channel"
-    $Channel
-    "-PublicBaseUrl"
-    $normalizedBaseUrl
-    "-OutputDirectory"
-    $channelOutputDirectory
-)
+$prepareArgs = @{
+    Channel = $Channel
+    PublicBaseUrl = $normalizedBaseUrl
+    OutputDirectory = $channelOutputDirectory
+}
 
 if (-not [string]::IsNullOrWhiteSpace($PortableZipPath)) {
-    $prepareArgs += @("-PortableZipPath", $PortableZipPath)
+    $prepareArgs.PortableZipPath = $PortableZipPath
 }
 
 if (-not [string]::IsNullOrWhiteSpace($MsixPath)) {
-    $prepareArgs += @("-MsixPath", $MsixPath)
+    $prepareArgs.MsixPath = $MsixPath
 }
 
 if (-not [string]::IsNullOrWhiteSpace($ReleaseNotesUrl)) {
-    $prepareArgs += @("-ReleaseNotesUrl", $ReleaseNotesUrl)
+    $prepareArgs.ReleaseNotesUrl = $ReleaseNotesUrl
 }
 
 if ($PortableOnly) {
-    $prepareArgs += "-PortableOnly"
+    $prepareArgs.PortableOnly = $true
 }
 
-& powershell @prepareArgs
-if ($LASTEXITCODE -ne 0) {
-    throw "prepare-update-channel.ps1 failed with exit code $LASTEXITCODE."
+& $prepareScriptPath @prepareArgs
+if (-not $?) {
+    throw "prepare-update-channel.ps1 failed."
 }
 
 $stableManifestPath = Join-Path $channelOutputDirectory "stable.json"
