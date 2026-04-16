@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="AegisTune.App.Pages.StartupPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:core="using:AegisTune.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer>
+        <StackPanel x:Name="LayoutRoot" Padding="{StaticResource PagePadding}" Spacing="20">
+            <Border Style="{StaticResource HeroSurfaceCardStyle}">
+                <Grid ColumnSpacing="18" RowSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="320" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Spacing="12">
+                        <TextBlock Style="{StaticResource PageEyebrowTextStyle}" Text="STARTUP &amp; BACKGROUND" />
+                        <TextBlock Style="{StaticResource PageTitleTextStyle}" Text="Startup Review" />
+                        <TextBlock Style="{StaticResource PageLeadTextStyle}" Text="{x:Bind HeroSummaryLine}" TextWrapping="WrapWholeWords" />
+                        <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ModuleStatusLine}" TextWrapping="WrapWholeWords" />
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button
+                                Click="RefreshStartup_Click"
+                                Content="Scan startup items"
+                                Style="{StaticResource PrimaryCtaButtonStyle}" />
+                            <Button
+                                Click="RemoveSelectedOrphanedEntries_Click"
+                                Content="Remove selected broken startup entries"
+                                IsEnabled="{x:Bind HasSelectedOrphanedEntries}"
+                                Style="{StaticResource SecondaryCtaButtonStyle}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Grid.Column="1" Style="{StaticResource CompactSurfaceCardStyle}">
+                        <StackPanel Spacing="8">
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="What happens next" />
+                            <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="Scan startup entries first. You can disable active startup items and remove only the broken ones after you inspect the target or source folder." TextWrapping="WrapWholeWords" />
+                            <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind ActionStatusLine}" TextWrapping="WrapWholeWords" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <Grid x:Name="OverviewGrid" ColumnSpacing="16" RowSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition x:Name="OverviewColumn2" Width="0" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition x:Name="OverviewRow2" Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Border
+                    x:Name="CurrentPostureCard"
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Style="{StaticResource SurfaceCardStyle}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Current posture" />
+                        <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind VisibleEntriesLabel}" TextWrapping="WrapWholeWords" />
+                        <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind SafeOrphanedSummaryLabel}" TextWrapping="WrapWholeWords" />
+                        <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind QuickReviewSummary}" TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    x:Name="InventoryTotalsCard"
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Style="{StaticResource SurfaceCardStyle}">
+                    <Grid x:Name="PostureMetricsGrid" ColumnSpacing="18" RowSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition x:Name="PostureMetricColumn2" Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition x:Name="PostureMetricRow2" Height="0" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
+                            <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind EntryCountLabel}" />
+                            <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="Entries found" />
+                        </StackPanel>
+
+                        <StackPanel
+                            x:Name="NeedReviewMetricPanel"
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Spacing="4">
+                            <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ActionableCountLabel}" />
+                            <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="Need review" />
+                        </StackPanel>
+
+                        <TextBlock
+                            x:Name="SelectionStatusTextBlock"
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"
+                            Style="{StaticResource CaptionTextStyle}"
+                            Text="{x:Bind SelectedOrphanedCountLabel}"
+                            TextWrapping="WrapWholeWords" />
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Broken startup entries you can remove now" />
+
+            <Border Style="{StaticResource CompactSurfaceCardStyle}">
+                <StackPanel Spacing="8">
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind QuickReviewSummary}" TextWrapping="WrapWholeWords" />
+                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind SelectedOrphanedCountLabel}" TextWrapping="WrapWholeWords" />
+                    <CommandBar Style="{StaticResource ActionCommandBarStyle}">
+                        <CommandBar.PrimaryCommands>
+                            <AppBarButton Click="OpenCurrentUserStartupFolder_Click" Label="Open my startup folder" />
+                            <AppBarButton Click="OpenCommonStartupFolder_Click" Label="Open all-users startup folder" />
+                        </CommandBar.PrimaryCommands>
+                        <CommandBar.SecondaryCommands>
+                            <AppBarButton Click="SelectAllOrphanedEntries_Click" Label="Select all safe stale items" />
+                            <AppBarButton Click="ClearOrphanedSelection_Click" Label="Clear selection" />
+                        </CommandBar.SecondaryCommands>
+                    </CommandBar>
+                </StackPanel>
+            </Border>
+
+            <ItemsControl ItemsSource="{x:Bind OrphanedEntries}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="core:StartupEntryRecord">
+                        <Border Margin="0,0,0,12" Style="{StaticResource SurfaceCardStyle}">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="SemiBold" Text="{x:Bind Name}" />
+                                <CheckBox
+                                    Checked="OrphanedEntrySelection_Checked"
+                                    Content="Mark for removal"
+                                    Loaded="OrphanedEntrySelection_Loaded"
+                                    Tag="{x:Bind SelectionKey}"
+                                    Unchecked="OrphanedEntrySelection_Unchecked" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind SourceLocationLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ResolvedTargetLabel}" TextWrapping="WrapWholeWords" />
+                                <CommandBar Style="{StaticResource ActionCommandBarStyle}">
+                                    <CommandBar.PrimaryCommands>
+                                        <AppBarButton Click="RemoveOrphanedEntry_Click" Label="{x:Bind RemovalActionLabel}" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenResolvedTarget_Click" IsEnabled="{x:Bind CanOpenResolvedTarget}" Label="Open target" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenStartupFolderForEntry_Click" IsEnabled="{x:Bind HasStartupFolderPath}" Label="Open startup folder" Tag="{Binding}" />
+                                    </CommandBar.PrimaryCommands>
+                                    <CommandBar.SecondaryCommands>
+                                        <AppBarButton Click="CopyLaunchCommand_Click" Label="Copy launch command" Tag="{Binding}" />
+                                        <AppBarButton Click="CopySourceLocation_Click" Label="Copy source path" Tag="{Binding}" />
+                                        <AppBarButton Click="CopyStartupBrief_Click" Label="Copy startup entry summary" Tag="{Binding}" />
+                                    </CommandBar.SecondaryCommands>
+                                </CommandBar>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="All startup items" />
+            <Border Style="{StaticResource CompactSurfaceCardStyle}">
+                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind StartupInventorySummary}" TextWrapping="WrapWholeWords" />
+            </Border>
+
+            <ItemsControl ItemsSource="{x:Bind Entries}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="core:StartupEntryRecord">
+                        <Border Margin="0,0,0,12" Style="{StaticResource SurfaceCardStyle}">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="SemiBold" Text="{x:Bind Name}" />
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{x:Bind ImpactLabel}" />
+                                    <TextBlock Text="•" />
+                                    <TextBlock Text="{x:Bind StatusLabel}" />
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind Source}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind SourceLocationLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ResolvedTargetLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind Notes}" TextWrapping="WrapWholeWords" />
+                                <CommandBar Style="{StaticResource ActionCommandBarStyle}">
+                                    <CommandBar.PrimaryCommands>
+                                        <AppBarButton Click="DisableStartupEntry_Click" IsEnabled="{x:Bind CanDisableFromStartup}" Label="{x:Bind DisableActionLabel}" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenResolvedTarget_Click" IsEnabled="{x:Bind CanOpenResolvedTarget}" Label="Open target" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenStartupFolderForEntry_Click" IsEnabled="{x:Bind HasStartupFolderPath}" Label="Open startup folder" Tag="{Binding}" />
+                                    </CommandBar.PrimaryCommands>
+                                    <CommandBar.SecondaryCommands>
+                                        <AppBarButton Click="CopyLaunchCommand_Click" Label="Copy launch command" Tag="{Binding}" />
+                                        <AppBarButton Click="CopySourceLocation_Click" Label="Copy source path" Tag="{Binding}" />
+                                        <AppBarButton Click="CopyStartupBrief_Click" Label="Copy startup entry summary" Tag="{Binding}" />
+                                    </CommandBar.SecondaryCommands>
+                                </CommandBar>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

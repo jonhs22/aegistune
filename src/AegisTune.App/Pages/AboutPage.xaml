@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="AegisTune.App.Pages.AboutPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer>
+        <StackPanel Padding="{StaticResource PagePadding}" Spacing="24">
+            <TextBlock Style="{StaticResource PageTitleTextStyle}" Text="About AegisTune" />
+            <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="AegisTune for Windows is positioned as a serious maintenance suite for Windows 11: transparent cleanup, guided driver work, startup hygiene, and evidence-based repair instead of scareware behavior." />
+
+            <Border Style="{StaticResource SurfaceCardStyle}">
+                <StackPanel Spacing="8">
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Publisher and creator" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind PublisherName}" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind SupportEmail}" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind CreatorName}" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind PackagePublisherSubject}" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind BuildVersion}" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind DistributionLabel}" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource SurfaceCardStyle}">
+                <StackPanel Spacing="10">
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Update channel" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind UpdateSummaryLine}" TextWrapping="WrapWholeWords" />
+                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind UpdateDetailLine}" TextWrapping="WrapWholeWords" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Button Click="CheckUpdatesNow_Click" Content="Check updates now" />
+                        <Button Click="OpenUpdateSource_Click" Content="{x:Bind UpdateState.PrimaryActionLabel}" />
+                        <Button Click="OpenReleaseNotes_Click" Content="View release notes" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource SurfaceCardStyle}">
+                <StackPanel Spacing="10">
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Product principles" />
+                    <TextBlock Text="• No generic registry cleaner." />
+                    <TextBlock Text="• No fake score inflation or hidden 'repair all' actions." />
+                    <TextBlock Text="• Every risky action must explain impact, permissions, and rollback." />
+                    <TextBlock Text="• Reports and logs are part of the product, not an afterthought." />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource SurfaceCardStyle}">
+                <StackPanel Spacing="8">
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Current milestone" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="This build ships a guided WinUI maintenance cockpit with cleanup, health review, startup control, apps and leftovers, repair packs, driver and firmware review, Safety &amp; Undo, audio controls, and exportable evidence." />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="Portable and packaged lanes now share the same update-feed model, so one published channel can tell each running copy when a newer build exists." />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

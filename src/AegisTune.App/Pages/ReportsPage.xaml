@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="AegisTune.App.Pages.ReportsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:core="using:AegisTune.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer>
+        <StackPanel Padding="{StaticResource PagePadding}" Spacing="24">
+            <TextBlock Style="{StaticResource PageTitleTextStyle}" Text="Reports" />
+            <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ModuleSubtitle}" />
+            <TextBlock
+                Style="{StaticResource PageLeadTextStyle}"
+                Text="Use this page in order: refresh the active report, review the live evidence snapshot, then export the current or stored report when you need technician handoff."
+                TextWrapping="WrapWholeWords" />
+
+            <Border Style="{StaticResource SurfaceCardStyle}">
+                <CommandBar Style="{StaticResource ActionCommandBarStyle}">
+                    <CommandBar.PrimaryCommands>
+                        <AppBarButton Click="RefreshReport_Click" Label="Refresh active report" />
+                        <AppBarButton Click="ExportActiveReport_Click" Label="{x:Bind ExportButtonLabel}" />
+                        <AppBarButton Click="UseLatestReport_Click" IsEnabled="{x:Bind HasHistorySelection}" Label="Switch to latest report" />
+                    </CommandBar.PrimaryCommands>
+                    <CommandBar.SecondaryCommands>
+                        <AppBarButton Click="OpenExportFolder_Click" IsEnabled="{x:Bind HasExportDirectory}" Label="Open export folder" />
+                        <AppBarButton Click="OpenReportStorage_Click" Label="Open report storage folder" />
+                    </CommandBar.SecondaryCommands>
+                </CommandBar>
+            </Border>
+
+            <Border Style="{StaticResource SurfaceCardStyle}">
+                <StackPanel Spacing="8">
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Trust surfaces" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ModuleStatusLine}" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ActiveReportOriginLabel}" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="Reporting is part of the MVP because every action in a maintenance suite needs visible reasoning, timestamps, and export structure." />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource SurfaceCardStyle}">
+                <StackPanel Spacing="8">
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Export status" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ExportStatusLine}" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ExportDirectoryLabel}" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind JsonExportPathLabel}" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind MarkdownExportPathLabel}" />
+                </StackPanel>
+            </Border>
+
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource SurfaceCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="Total issues in active report" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind TotalIssueCountLabel}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Style="{StaticResource SurfaceCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="Stored reports" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind HistoryCountLabel}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border Style="{StaticResource SurfaceCardStyle}">
+                <StackPanel Spacing="8">
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Active report" />
+                    <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ActiveReportDeviceLabel}" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ActiveReportGeneratedAtLabel}" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ReportStoragePathLabel}" TextWrapping="WrapWholeWords" />
+                </StackPanel>
+            </Border>
+
+            <ItemsControl ItemsSource="{x:Bind Modules}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="core:ReportModuleSummary">
+                        <Border Margin="0,0,0,12" Style="{StaticResource SurfaceCardStyle}">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="SemiBold" Text="{x:Bind Title}" />
+                                <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind PrimaryMetric}" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind Summary}" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Recent reports" />
+
+            <ItemsControl ItemsSource="{x:Bind History}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="core:MaintenanceReportRecord">
+                        <Border Margin="0,0,0,12" Style="{StaticResource SurfaceCardStyle}">
+                            <StackPanel Spacing="6">
+                                <TextBlock FontWeight="SemiBold" Text="{x:Bind DeviceName}" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind OperatingSystem}" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind GeneratedAtLabel}" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind IssueSummaryLabel}" />
+                                <CommandBar Style="{StaticResource ActionCommandBarStyle}">
+                                    <CommandBar.PrimaryCommands>
+                                        <AppBarButton Click="ReviewHistoryReport_Click" Label="Review stored report" Tag="{Binding}" />
+                                        <AppBarButton Click="ExportHistoryReport_Click" Label="Export this report" Tag="{Binding}" />
+                                    </CommandBar.PrimaryCommands>
+                                </CommandBar>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

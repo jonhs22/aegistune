@@ -1,0 +1,100 @@
+name: publish-update-feed-pages
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Channel to publish
+        required: true
+        default: stable
+      run_tests:
+        description: Run automated tests before packaging
+        required: true
+        default: "true"
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-stage:
+    runs-on: windows-latest
+
+    outputs:
+      public_base_url: ${{ steps.update-base.outputs.public_base_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Resolve update base URL
+        id: update-base
+        shell: pwsh
+        run: |
+          $defaultBaseUrl = "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/aegistune/${{ github.event.inputs.channel || 'stable' }}"
+          $configuredBaseUrl = "${{ vars.UPDATE_PUBLIC_BASE_URL }}"
+          if ([string]::IsNullOrWhiteSpace($configuredBaseUrl)) {
+            $configuredBaseUrl = $defaultBaseUrl
+          }
+          "public_base_url=$configuredBaseUrl" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Restore
+        shell: pwsh
+        run: dotnet restore .\AegisTune.sln -p:Platform=x64
+
+      - name: Test
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_tests == 'true' }}
+        shell: pwsh
+        run: dotnet test .\AegisTune.sln -p:Platform=x64 --no-restore
+
+      - name: Build portable
+        shell: pwsh
+        run: .\scripts\build-portable.ps1 -Platform x64 -Configuration Release
+
+      - name: Build MSIX
+        shell: pwsh
+        run: .\scripts\build-msix.ps1 -Platform x64 -Configuration Release -KeepPackageCount 1
+
+      - name: Stage Pages site
+        shell: pwsh
+        run: |
+          $channel = "${{ github.event.inputs.channel || 'stable' }}"
+          .\scripts\stage-update-feed-for-pages.ps1 `
+            -Channel $channel `
+            -ProductPath aegistune `
+            -SiteRoot .\artifacts\pages-site `
+            -PublicBaseUrl "${{ steps.update-base.outputs.public_base_url }}" `
+            -CName "${{ vars.UPDATE_CNAME }}"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .\artifacts\pages-site
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-stage
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

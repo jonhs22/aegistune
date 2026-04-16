@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="AegisTune.App.Pages.AppsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:core="using:AegisTune.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer>
+        <StackPanel Padding="{StaticResource PagePadding}" Spacing="20">
+            <Border Style="{StaticResource HeroSurfaceCardStyle}">
+                <Grid ColumnSpacing="18" RowSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="320" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Spacing="12">
+                        <TextBlock Style="{StaticResource PageEyebrowTextStyle}" Text="APPS &amp; UNINSTALL" />
+                        <TextBlock Style="{StaticResource PageTitleTextStyle}" Text="Apps &amp; Uninstall" />
+                        <TextBlock Style="{StaticResource PageLeadTextStyle}" Text="{x:Bind HeroSummaryLine}" TextWrapping="WrapWholeWords" />
+                        <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ModuleStatusLine}" TextWrapping="WrapWholeWords" />
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button
+                                Click="RefreshApps_Click"
+                                Content="Refresh app scan"
+                                Style="{StaticResource PrimaryCtaButtonStyle}" />
+                            <Button
+                                Click="OpenAppsSettings_Click"
+                                Content="Open Installed apps"
+                                Style="{StaticResource SecondaryCtaButtonStyle}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Grid.Column="1" Style="{StaticResource CompactSurfaceCardStyle}">
+                        <StackPanel Spacing="8">
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="What happens next" />
+                            <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="Review uninstall leftovers first, then inspect install folders, leftover folders, and uninstall targets. When a recorded uninstall finishes quickly, AegisTune rescans this page and offers confirmed leftover cleanup automatically." TextWrapping="WrapWholeWords" />
+                            <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind ActionStatusLine}" TextWrapping="WrapWholeWords" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <Grid ColumnSpacing="16" RowSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource SurfaceCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource MetricCaptionTextStyle}" Text="All apps" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind TotalAppCountLabel}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource SurfaceCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource MetricCaptionTextStyle}" Text="Needs review" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind NeedsReviewCountLabel}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource SurfaceCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource MetricCaptionTextStyle}" Text="Desktop apps" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind DesktopAppCountLabel}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource SurfaceCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource MetricCaptionTextStyle}" Text="Leftover footprints" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ResidueFootprintCountLabel}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border Style="{StaticResource CompactSurfaceCardStyle}" Visibility="{x:Bind RepairHandoffVisibility}">
+                <StackPanel Spacing="8">
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Repair handoff" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind RepairHandoffSummaryLine}" TextWrapping="WrapWholeWords" />
+                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind RepairHandoffNextStepLine}" TextWrapping="WrapWholeWords" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Button
+                            Click="OpenRepairSurface_Click"
+                            Content="Back to Repair &amp; Recovery"
+                            Style="{StaticResource SecondaryCtaButtonStyle}" />
+                        <Button
+                            Click="ClearRepairHandoff_Click"
+                            Content="Clear repair handoff"
+                            Style="{StaticResource SecondaryCtaButtonStyle}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Review first" />
+            <Border Style="{StaticResource CompactSurfaceCardStyle}">
+                <StackPanel Spacing="6">
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind PriorityReviewSummary}" TextWrapping="WrapWholeWords" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ResidueReviewSummary}" TextWrapping="WrapWholeWords" />
+                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind VisibleApplicationsLabel}" TextWrapping="WrapWholeWords" />
+                </StackPanel>
+            </Border>
+
+            <ItemsControl ItemsSource="{x:Bind ApplicationsToReview}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="core:InstalledApplicationRecord">
+                        <Border Margin="0,0,0,12" Style="{StaticResource SurfaceCardStyle}">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="SemiBold" Text="{x:Bind DisplayName}" />
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{x:Bind SourceLabel}" />
+                                    <TextBlock Text="•" />
+                                    <TextBlock Text="{x:Bind VersionLabel}" />
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind BrokenInstallEvidenceLabel}" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind InstallLocationLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind UninstallTargetLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind FilesystemResidueSummaryLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind FilesystemResiduePreview}" TextWrapping="WrapWholeWords" />
+                                <CommandBar Style="{StaticResource ActionCommandBarStyle}">
+                                    <CommandBar.PrimaryCommands>
+                                        <AppBarButton Click="RunUninstall_Click" IsEnabled="{x:Bind CanRunUninstall}" Label="Run uninstall" Tag="{Binding}" />
+                                        <AppBarButton Click="RunConfirmedResidueCleanup_Click" IsEnabled="{x:Bind CanCleanConfirmedResidue}" Label="Clean confirmed leftovers" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenInstallLocation_Click" IsEnabled="{x:Bind InstallLocationExists}" Label="Open app folder" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenUninstallTarget_Click" IsEnabled="{x:Bind UninstallTargetExists}" Label="Open uninstall target" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenResidueFolder_Click" IsEnabled="{x:Bind HasPrimaryResiduePath}" Label="Open leftover folder" Tag="{Binding}" />
+                                    </CommandBar.PrimaryCommands>
+                                    <CommandBar.SecondaryCommands>
+                                        <AppBarButton Click="CopyUninstallCommand_Click" IsEnabled="{x:Bind HasUninstallCommand}" Label="Copy uninstall command" Tag="{Binding}" />
+                                        <AppBarButton Click="CopyAppBrief_Click" Label="Copy app summary" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenProgramsAndFeatures_Click" Label="Open Programs and Features" />
+                                    </CommandBar.SecondaryCommands>
+                                </CommandBar>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Installed apps" />
+            <Border Style="{StaticResource CompactSurfaceCardStyle}">
+                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind InstalledAppsSummary}" TextWrapping="WrapWholeWords" />
+            </Border>
+
+            <ItemsControl ItemsSource="{x:Bind VisibleApplications}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="core:InstalledApplicationRecord">
+                        <Border Margin="0,0,0,12" Style="{StaticResource SurfaceCardStyle}">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="SemiBold" Text="{x:Bind DisplayName}" />
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{x:Bind SourceLabel}" />
+                                    <TextBlock Text="•" />
+                                    <TextBlock Text="{x:Bind VersionLabel}" />
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind PublisherLabel}" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind InstallLocationLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind UninstallCommandLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind FilesystemResidueSummaryLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind EstimatedSizeLabel}" />
+                                <CommandBar Style="{StaticResource ActionCommandBarStyle}">
+                                    <CommandBar.PrimaryCommands>
+                                        <AppBarButton Click="RunUninstall_Click" IsEnabled="{x:Bind CanRunUninstall}" Label="Run uninstall" Tag="{Binding}" />
+                                        <AppBarButton Click="RunConfirmedResidueCleanup_Click" IsEnabled="{x:Bind CanCleanConfirmedResidue}" Label="Clean confirmed leftovers" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenInstallLocation_Click" IsEnabled="{x:Bind InstallLocationExists}" Label="Open app folder" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenUninstallTarget_Click" IsEnabled="{x:Bind UninstallTargetExists}" Label="Open uninstall target" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenResidueFolder_Click" IsEnabled="{x:Bind HasPrimaryResiduePath}" Label="Open leftover folder" Tag="{Binding}" />
+                                    </CommandBar.PrimaryCommands>
+                                    <CommandBar.SecondaryCommands>
+                                        <AppBarButton Click="CopyUninstallCommand_Click" IsEnabled="{x:Bind HasUninstallCommand}" Label="Copy uninstall command" Tag="{Binding}" />
+                                        <AppBarButton Click="CopyAppBrief_Click" Label="Copy app summary" Tag="{Binding}" />
+                                    </CommandBar.SecondaryCommands>
+                                </CommandBar>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

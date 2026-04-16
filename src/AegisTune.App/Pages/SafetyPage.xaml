@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="AegisTune.App.Pages.SafetyPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:core="using:AegisTune.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer>
+        <StackPanel Padding="{StaticResource PagePadding}" Spacing="20">
+            <Border Style="{StaticResource HeroSurfaceCardStyle}">
+                <Grid ColumnSpacing="18" RowSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="320" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Spacing="12">
+                        <TextBlock Style="{StaticResource PageEyebrowTextStyle}" Text="SAFETY &amp; UNDO" />
+                        <TextBlock Style="{StaticResource PageTitleTextStyle}" Text="Safety &amp; Undo" />
+                        <TextBlock Style="{StaticResource PageLeadTextStyle}" Text="{x:Bind HeroSummaryLine}" TextWrapping="WrapWholeWords" />
+                        <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ModuleStatusLine}" TextWrapping="WrapWholeWords" />
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button
+                                Click="RefreshSafetyHistory_Click"
+                                Content="Review safety history"
+                                Style="{StaticResource PrimaryCtaButtonStyle}" />
+                            <Button
+                                Click="OpenSystemRestore_Click"
+                                Content="Open System Restore"
+                                Style="{StaticResource SecondaryCtaButtonStyle}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Grid.Column="1" Style="{StaticResource CompactSurfaceCardStyle}">
+                        <StackPanel Spacing="8">
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="How to use this page" />
+                            <TextBlock
+                                Style="{StaticResource MutedBodyTextStyle}"
+                                Text="Open this page after any risky driver, startup, registry, or uninstall action. Review the recorded safety trail first, then open only the exact backup or restore action you need."
+                                TextWrapping="WrapWholeWords" />
+                            <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind ActionStatusLine}" TextWrapping="WrapWholeWords" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <Grid ColumnSpacing="16" RowSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource SurfaceCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource MetricCaptionTextStyle}" Text="Undo items" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind UndoEntryCountLabel}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource SurfaceCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource MetricCaptionTextStyle}" Text="Rollback-ready backups" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind RollbackReadyCountLabel}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource SurfaceCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource MetricCaptionTextStyle}" Text="Driver installs recorded" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind DriverInstallEntryCountLabel}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource SurfaceCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource MetricCaptionTextStyle}" Text="App uninstalls recorded" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ApplicationUninstallEntryCountLabel}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource SurfaceCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource MetricCaptionTextStyle}" Text="Startup changes recorded" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind StartupActionEntryCountLabel}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource SurfaceCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource MetricCaptionTextStyle}" Text="Restore points recorded" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind RestorePointEntryCountLabel}" />
+                        <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind RestorePointPolicyLabel}" TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border Style="{StaticResource CompactSurfaceCardStyle}">
+                <StackPanel Spacing="10">
+                    <CommandBar Style="{StaticResource ActionCommandBarStyle}">
+                        <CommandBar.PrimaryCommands>
+                            <AppBarButton Click="OpenSystemRestore_Click" Label="Open System Restore" />
+                            <AppBarButton Click="OpenUndoJournalFolder_Click" Label="Open undo journal folder" />
+                            <AppBarButton Click="OpenRepairCenter_Click" Label="Open Repair &amp; Recovery" />
+                        </CommandBar.PrimaryCommands>
+                        <CommandBar.SecondaryCommands>
+                            <AppBarButton Click="OpenSettings_Click" Label="Open Settings" />
+                        </CommandBar.SecondaryCommands>
+                    </CommandBar>
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind SessionProtectionSummary}" TextWrapping="WrapWholeWords" />
+                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind UndoHistorySummary}" TextWrapping="WrapWholeWords" />
+                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind UndoJournalStoragePathLabel}" TextWrapping="WrapWholeWords" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Recent safety history" />
+            <Border Style="{StaticResource CompactSurfaceCardStyle}">
+                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind UndoHistoryLeadLine}" TextWrapping="WrapWholeWords" />
+            </Border>
+
+            <ItemsControl ItemsSource="{x:Bind UndoEntries}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="core:UndoJournalEntry">
+                        <Border Margin="0,0,0,12" Style="{StaticResource SurfaceCardStyle}">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="SemiBold" Text="{x:Bind Title}" />
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{x:Bind KindLabel}" />
+                                    <TextBlock Text="•" />
+                                    <TextBlock Text="{x:Bind OccurredAtLabel}" />
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind StatusLine}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind GuidanceLine}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind ArtifactLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind TargetDetailLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind CommandLineSummary}" TextWrapping="WrapWholeWords" />
+                                <CommandBar Style="{StaticResource ActionCommandBarStyle}">
+                                    <CommandBar.PrimaryCommands>
+                                        <AppBarButton Click="RunUndoEntry_Click" IsEnabled="{x:Bind CanRunUndoAction}" Label="{x:Bind SuggestedUndoActionLabel}" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenUndoArtifact_Click" IsEnabled="{x:Bind CanOpenArtifact}" Label="{x:Bind OpenArtifactActionLabel}" Tag="{Binding}" />
+                                    </CommandBar.PrimaryCommands>
+                                    <CommandBar.SecondaryCommands>
+                                        <AppBarButton Click="CopyUndoEntrySummary_Click" Label="Copy undo summary" Tag="{Binding}" />
+                                    </CommandBar.SecondaryCommands>
+                                </CommandBar>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

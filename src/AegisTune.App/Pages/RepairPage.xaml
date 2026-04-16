@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="AegisTune.App.Pages.RepairPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:core="using:AegisTune.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:repair="using:AegisTune.RepairEngine"
+    mc:Ignorable="d">
+
+    <ScrollViewer>
+        <StackPanel Padding="{StaticResource PagePadding}" Spacing="24">
+            <TextBlock Style="{StaticResource PageTitleTextStyle}" Text="Repair &amp; Recovery" />
+            <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ModuleSubtitle}" />
+            <TextBlock
+                Style="{StaticResource PageLeadTextStyle}"
+                Text="Use this page in order: scan repair candidates, review the proof, open only official repair surfaces, then copy or export the final advisory."
+                TextWrapping="WrapWholeWords" />
+
+            <Border Style="{StaticResource SurfaceCardStyle}">
+                <StackPanel Spacing="10">
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Repair contract" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ModuleStatusLine}" />
+                    <CommandBar Style="{StaticResource ActionCommandBarStyle}">
+                        <CommandBar.PrimaryCommands>
+                            <AppBarButton Click="RefreshRepairScan_Click" Label="Scan repair candidates" />
+                            <AppBarButton Click="OpenAppsReviewSurface_Click" Label="Open Apps &amp; Uninstall" />
+                            <AppBarButton Click="OpenAppsSettings_Click" Label="Open Apps settings" />
+                        </CommandBar.PrimaryCommands>
+                        <CommandBar.SecondaryCommands>
+                            <AppBarButton Click="OpenProgramsAndFeatures_Click" Label="Open Programs and Features" />
+                            <AppBarButton Click="OpenRegistryRepairBackupFolder_Click" IsEnabled="{x:Bind HasRegistryRepairBackup}" Label="Open last registry backup" />
+                        </CommandBar.SecondaryCommands>
+                    </CommandBar>
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ActionStatusLine}" TextWrapping="WrapWholeWords" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="Repairs stay evidence-based. Runtime and missing-DLL issues are advisory only and always route to Microsoft or the official vendor repair path." TextWrapping="WrapWholeWords" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="AegisTune does not download DLLs from third-party mirror sites or inject unknown binaries into application folders." TextWrapping="WrapWholeWords" />
+                    <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind CandidateCountLabel}" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource SurfaceCardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Manual dependency triage" />
+                    <TextBlock
+                        Style="{StaticResource MutedBodyTextStyle}"
+                        Text="Paste the exact DLL error text, SideBySide message, or app launch error here. AegisTune will classify it locally and suggest only Microsoft or official vendor remediation."
+                        TextWrapping="WrapWholeWords" />
+                    <CommandBar Style="{StaticResource ActionCommandBarStyle}">
+                        <CommandBar.PrimaryCommands>
+                            <AppBarButton
+                                Click="AnalyzeManualInput_Click"
+                                IsEnabled="{x:Bind HasManualInput}"
+                                Label="Analyze pasted error text" />
+                            <AppBarButton
+                                Click="CopyAdvisory_Click"
+                                IsEnabled="{x:Bind HasActiveAdvisory}"
+                                Label="Copy current advisory" />
+                            <AppBarButton
+                                Click="ExportAdvisory_Click"
+                                IsEnabled="{x:Bind HasActiveAdvisory}"
+                                Label="Export current advisory" />
+                        </CommandBar.PrimaryCommands>
+                        <CommandBar.SecondaryCommands>
+                            <AppBarButton
+                                Click="OpenExportFolder_Click"
+                                IsEnabled="{x:Bind HasExportDirectory}"
+                                Label="Open export folder" />
+                            <AppBarButton Click="ClearManualInput_Click" Label="Clear pasted text" />
+                        </CommandBar.SecondaryCommands>
+                    </CommandBar>
+                    <TextBox
+                        x:Name="ManualInputTextBox"
+                        AcceptsReturn="True"
+                        MinHeight="120"
+                        PlaceholderText="Example: The program can't start because MSVCP140.dll is missing from your computer."
+                        TextChanged="ManualInputTextBox_TextChanged"
+                        TextWrapping="Wrap"
+                        VerticalContentAlignment="Top" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ManualStatusLine}" TextWrapping="WrapWholeWords" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource SurfaceCardStyle}">
+                <StackPanel Spacing="8">
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Advisory export" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ActiveAdvisoryScopeLabel}" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ExportStatusLine}" TextWrapping="WrapWholeWords" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind RegistryRepairStatusLine}" TextWrapping="WrapWholeWords" />
+                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind RegistryRepairBackupLabel}" TextWrapping="WrapWholeWords" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ExportDirectoryLabel}" TextWrapping="WrapWholeWords" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind JsonExportPathLabel}" TextWrapping="WrapWholeWords" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind MarkdownExportPathLabel}" TextWrapping="WrapWholeWords" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource SurfaceCardStyle}">
+                <StackPanel Spacing="10">
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Undo center" />
+                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind UndoCenterSummaryLine}" TextWrapping="WrapWholeWords" />
+                    <CommandBar Style="{StaticResource ActionCommandBarStyle}">
+                        <CommandBar.PrimaryCommands>
+                            <AppBarButton Click="OpenSystemRestore_Click" Label="Open System Restore" />
+                            <AppBarButton Click="OpenUndoJournalFolder_Click" Label="Open undo journal folder" />
+                            <AppBarButton Click="OpenSafetyCenter_Click" Label="Open Safety &amp; Undo" />
+                        </CommandBar.PrimaryCommands>
+                        <CommandBar.SecondaryCommands>
+                            <AppBarButton Click="OpenRegistryRepairBackupFolder_Click" IsEnabled="{x:Bind HasRegistryRepairBackup}" Label="Open last registry backup" />
+                        </CommandBar.SecondaryCommands>
+                    </CommandBar>
+                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind UndoJournalStoragePathLabel}" TextWrapping="WrapWholeWords" />
+                </StackPanel>
+            </Border>
+
+            <ItemsControl ItemsSource="{x:Bind UndoEntries}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="core:UndoJournalEntry">
+                        <Border Margin="0,0,0,12" Style="{StaticResource SurfaceCardStyle}">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="SemiBold" Text="{x:Bind Title}" />
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{x:Bind KindLabel}" />
+                                    <TextBlock Text="•" />
+                                    <TextBlock Text="{x:Bind OccurredAtLabel}" />
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind StatusLine}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind GuidanceLine}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind ArtifactLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind TargetDetailLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind CommandLineSummary}" TextWrapping="WrapWholeWords" />
+                                <CommandBar Style="{StaticResource ActionCommandBarStyle}">
+                                    <CommandBar.PrimaryCommands>
+                                        <AppBarButton Click="RunUndoEntry_Click" IsEnabled="{x:Bind CanRunUndoAction}" Label="{x:Bind SuggestedUndoActionLabel}" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenUndoArtifact_Click" IsEnabled="{x:Bind CanOpenArtifact}" Label="{x:Bind OpenArtifactActionLabel}" Tag="{Binding}" />
+                                    </CommandBar.PrimaryCommands>
+                                    <CommandBar.SecondaryCommands>
+                                        <AppBarButton Click="CopyUndoEntrySummary_Click" Label="Copy undo summary" Tag="{Binding}" />
+                                    </CommandBar.SecondaryCommands>
+                                </CommandBar>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <ItemsControl ItemsSource="{x:Bind ManualCandidates}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="core:RepairCandidateRecord">
+                        <Border Margin="0,0,0,12" Style="{StaticResource SurfaceCardStyle}">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="SemiBold" Text="{x:Bind Title}" />
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{x:Bind Category}" />
+                                    <TextBlock Text="•" />
+                                    <TextBlock Text="{x:Bind RiskLabel}" />
+                                    <TextBlock Text="•" />
+                                    <TextBlock Text="{x:Bind AdminRequirementLabel}" />
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind EvidenceSummary}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ProposedAction}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind SourceLocation}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind RelatedApplicationLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind InstallLocationLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind UninstallTargetLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind ResidueSummaryLabel}" TextWrapping="WrapWholeWords" />
+                                <CommandBar Style="{StaticResource ActionCommandBarStyle}">
+                                    <CommandBar.PrimaryCommands>
+                                        <AppBarButton Click="OpenCandidateAppCleanupFlow_Click" IsEnabled="{x:Bind CanOpenApplicationReviewFlow}" Label="{x:Bind ApplicationReviewActionLabel}" Tag="{Binding}" />
+                                        <AppBarButton Click="RunCandidateRepairPack_Click" IsEnabled="{x:Bind CanExecuteInAppRepairPack}" Label="{x:Bind RepairActionLabelText}" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenCandidateOfficialResource_Click" IsEnabled="{x:Bind HasOfficialResource}" Label="{x:Bind OfficialResourceLabelText}" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenCandidateInstallLocation_Click" IsEnabled="{x:Bind InstallLocationExists}" Label="Open app folder" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenCandidateApplicationPath_Click" IsEnabled="{x:Bind ApplicationPathExists}" Label="Open app path" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenCandidateResidueFolder_Click" IsEnabled="{x:Bind HasResidueFolderPath}" Label="Open leftover folder" Tag="{Binding}" />
+                                    </CommandBar.PrimaryCommands>
+                                    <CommandBar.SecondaryCommands>
+                                        <AppBarButton Click="OpenCandidateUninstallTarget_Click" IsEnabled="{x:Bind UninstallTargetExists}" Label="Open uninstall target" Tag="{Binding}" />
+                                        <AppBarButton Click="CopyCandidateExecutionBrief_Click" Label="Copy repair summary" Tag="{Binding}" />
+                                    </CommandBar.SecondaryCommands>
+                                </CommandBar>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Official repair links" />
+
+            <ItemsControl ItemsSource="{x:Bind OfficialResources}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="repair:RepairResourceLink">
+                        <Border Margin="0,0,0,12" Style="{StaticResource SurfaceCardStyle}">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="SemiBold" Text="{x:Bind Title}" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind Description}" TextWrapping="WrapWholeWords" />
+                                <HyperlinkButton Content="{x:Bind LinkLabel}" NavigateUri="{x:Bind ResourceUri}" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <ItemsControl ItemsSource="{x:Bind Candidates}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="core:RepairCandidateRecord">
+                        <Border Margin="0,0,0,12" Style="{StaticResource SurfaceCardStyle}">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="SemiBold" Text="{x:Bind Title}" />
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{x:Bind Category}" />
+                                    <TextBlock Text="•" />
+                                    <TextBlock Text="{x:Bind RiskLabel}" />
+                                    <TextBlock Text="•" />
+                                    <TextBlock Text="{x:Bind AdminRequirementLabel}" />
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind EvidenceSummary}" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ProposedAction}" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind SourceLocation}" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind RelatedApplicationLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind InstallLocationLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind UninstallTargetLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind ResidueSummaryLabel}" TextWrapping="WrapWholeWords" />
+                                <CommandBar Style="{StaticResource ActionCommandBarStyle}">
+                                    <CommandBar.PrimaryCommands>
+                                        <AppBarButton Click="OpenCandidateAppCleanupFlow_Click" IsEnabled="{x:Bind CanOpenApplicationReviewFlow}" Label="{x:Bind ApplicationReviewActionLabel}" Tag="{Binding}" />
+                                        <AppBarButton Click="RunCandidateRepairPack_Click" IsEnabled="{x:Bind CanExecuteInAppRepairPack}" Label="{x:Bind RepairActionLabelText}" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenCandidateOfficialResource_Click" IsEnabled="{x:Bind HasOfficialResource}" Label="{x:Bind OfficialResourceLabelText}" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenCandidateInstallLocation_Click" IsEnabled="{x:Bind InstallLocationExists}" Label="Open app folder" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenCandidateApplicationPath_Click" IsEnabled="{x:Bind ApplicationPathExists}" Label="Open app path" Tag="{Binding}" />
+                                        <AppBarButton Click="OpenCandidateResidueFolder_Click" IsEnabled="{x:Bind HasResidueFolderPath}" Label="Open leftover folder" Tag="{Binding}" />
+                                    </CommandBar.PrimaryCommands>
+                                    <CommandBar.SecondaryCommands>
+                                        <AppBarButton Click="OpenCandidateUninstallTarget_Click" IsEnabled="{x:Bind UninstallTargetExists}" Label="Open uninstall target" Tag="{Binding}" />
+                                        <AppBarButton Click="CopyCandidateExecutionBrief_Click" Label="Copy repair summary" Tag="{Binding}" />
+                                    </CommandBar.SecondaryCommands>
+                                </CommandBar>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <ItemsControl ItemsSource="{x:Bind Playbook}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="repair:RepairPlaybookItem">
+                        <Border Margin="0,0,0,12" Style="{StaticResource SurfaceCardStyle}">
+                            <StackPanel Spacing="6">
+                                <TextBlock FontWeight="SemiBold" Text="{x:Bind Title}" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind EvidenceRule}" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

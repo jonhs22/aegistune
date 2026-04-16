@@ -1,0 +1,167 @@
+# Update Distribution
+
+## Canonical feed
+
+Publish one static update point for the stable channel:
+
+`https://updates.ichiphost.com/aegistune/stable/`
+
+The app reads:
+
+- `stable.json` for update checks
+- `AegisTune.appinstaller` for packaged MSIX installs
+
+## Build the update folder
+
+1. Build the portable and packaged artifacts first.
+2. Generate the host-ready update folder:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\prepare-update-channel.ps1 `
+  -Channel stable `
+  -PublicBaseUrl https://updates.ichiphost.com/aegistune/stable
+```
+
+This writes:
+
+- `artifacts\updates\stable\stable.json`
+- `artifacts\updates\stable\AegisTune.appinstaller`
+- copied `MSIX` package
+- copied portable `zip`
+- `RELEASE-NOTES.md`
+
+By default the script now looks for a checked-in release notes source in:
+
+- `docs\releases\stable\<version>.md`
+- or `docs\releases\stable\latest.md`
+
+You can also scaffold a new notes file with:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\new-release-notes.ps1 `
+  -Channel stable
+```
+
+Or point the packaging step at a specific notes file:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\prepare-update-channel.ps1 `
+  -Channel stable `
+  -PublicBaseUrl https://updates.ichiphost.com/aegistune/stable `
+  -ReleaseNotesPath .\docs\releases\stable\1.0.25.0.md
+```
+
+## Build a GitHub Pages site locally
+
+Generate a ready-to-upload static site that contains:
+
+- landing page
+- `aegistune/stable/stable.json`
+- `aegistune/stable/AegisTune.appinstaller`
+- portable `zip`
+- `MSIX`
+- release notes
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\stage-update-feed-for-pages.ps1 `
+  -Channel stable `
+  -ProductPath aegistune `
+  -SiteRoot .\artifacts\pages-site `
+  -PublicBaseUrl https://updates.ichiphost.com/aegistune/stable `
+  -CName updates.ichiphost.com
+```
+
+This writes a static site under:
+
+- `artifacts\pages-site\index.html`
+- `artifacts\pages-site\aegistune\index.html`
+- `artifacts\pages-site\aegistune\stable\...`
+
+## Free hosting options
+
+### GitHub Pages
+
+This repo now includes a ready workflow:
+
+- `.github/workflows/publish-update-feed-pages.yml`
+
+What it does:
+
+1. restores and optionally tests the solution
+2. builds the portable bundle
+3. builds the `MSIX`
+4. stages the Pages site with `stage-update-feed-for-pages.ps1`
+5. deploys the site to GitHub Pages
+
+What you should configure in the repository:
+
+- `Pages` enabled with `GitHub Actions` as the source
+- optional repo variable `UPDATE_PUBLIC_BASE_URL`
+- optional repo variable `UPDATE_CNAME`
+
+If you do not set `UPDATE_PUBLIC_BASE_URL`, the workflow defaults to:
+
+- `https://OWNER.github.io/REPO/aegistune/stable`
+
+If you use a custom domain, set:
+
+- `UPDATE_PUBLIC_BASE_URL=https://updates.ichiphost.com/aegistune/stable`
+- `UPDATE_CNAME=updates.ichiphost.com`
+
+### Cloudflare R2
+
+This repo now includes:
+
+- `scripts\publish-update-feed-r2.ps1`
+
+First authenticate Wrangler:
+
+```powershell
+npx wrangler whoami
+```
+
+If needed:
+
+```powershell
+npx wrangler login
+```
+
+Preview the upload plan without pushing anything:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\publish-update-feed-r2.ps1 `
+  -BucketName aegistune-updates `
+  -PublicBaseUrl https://updates.ichiphost.com/aegistune/stable `
+  -DryRun
+```
+
+Then publish for real:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\publish-update-feed-r2.ps1 `
+  -BucketName aegistune-updates `
+  -PublicBaseUrl https://updates.ichiphost.com/aegistune/stable
+```
+
+This stages the same static site layout as GitHub Pages and uploads every file to R2 with cache rules:
+
+- `stable.json`, `.appinstaller`, notes, and HTML: low-cache / no-cache
+- `zip` and `MSIX`: long-cache immutable
+
+Put a public custom domain like `updates.ichiphost.com` in front of the bucket and keep the app feed URL on:
+
+- `https://updates.ichiphost.com/aegistune/stable/stable.json`
+
+## Runtime behavior
+
+- `Home` checks the configured feed on launch when app-update checks are enabled.
+- `Settings` lets the operator set the feed URL and run a manual check.
+- `About` shows the current distribution lane and latest feed result.
+- `MSIX` installs prefer `AegisTune.appinstaller`.
+- `Portable` installs prefer the portable `zip`.
+
+## Important limitation
+
+Public `MSIX` distribution still needs a trusted signing certificate for smooth installation on other machines. The local self-signed `CN=ichiphost` certificate is fine for controlled testing but not for normal public rollout.
+
+The GitHub Actions workflow can build and deploy with the current scripts, but if you want public end-user `MSIX` installs without certificate trust prompts, replace the local self-signed signing lane with a real trusted code-signing certificate in your release process.

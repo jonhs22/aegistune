@@ -1,0 +1,6 @@
+**/bin/
+**/obj/
+**/TestResults/
+src/AegisTune.App/AppPackages/
+artifacts/
+artifacts/*.log

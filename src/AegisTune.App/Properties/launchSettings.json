@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "AegisTune.App (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "AegisTune.App (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
