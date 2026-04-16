@@ -10,7 +10,8 @@ param(
     [string]$ReleaseNotesUrl = "",
     [string]$WranglerBin = "",
     [switch]$DryRun,
-    [switch]$SkipStage
+    [switch]$SkipStage,
+    [switch]$PortableOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -119,37 +120,32 @@ else {
 }
 
 if (-not $SkipStage) {
-    $stageArgs = @(
-        "-NoProfile"
-        "-ExecutionPolicy"
-        "Bypass"
-        "-File"
-        $stageScriptPath
-        "-Channel"
-        $Channel
-        "-ProductPath"
-        $ProductPath
-        "-SiteRoot"
-        $siteRootFullPath
-        "-PublicBaseUrl"
-        $PublicBaseUrl
-    )
+    $stageArgs = @{
+        Channel = $Channel
+        ProductPath = $ProductPath
+        SiteRoot = $siteRootFullPath
+        PublicBaseUrl = $PublicBaseUrl
+    }
 
     if (-not [string]::IsNullOrWhiteSpace($PortableZipPath)) {
-        $stageArgs += @("-PortableZipPath", $PortableZipPath)
+        $stageArgs.PortableZipPath = $PortableZipPath
     }
 
     if (-not [string]::IsNullOrWhiteSpace($MsixPath)) {
-        $stageArgs += @("-MsixPath", $MsixPath)
+        $stageArgs.MsixPath = $MsixPath
     }
 
     if (-not [string]::IsNullOrWhiteSpace($ReleaseNotesUrl)) {
-        $stageArgs += @("-ReleaseNotesUrl", $ReleaseNotesUrl)
+        $stageArgs.ReleaseNotesUrl = $ReleaseNotesUrl
     }
 
-    & powershell @stageArgs
-    if ($LASTEXITCODE -ne 0) {
-        throw "stage-update-feed-for-pages.ps1 failed with exit code $LASTEXITCODE."
+    if ($PortableOnly) {
+        $stageArgs.PortableOnly = $true
+    }
+
+    & $stageScriptPath @stageArgs
+    if (-not $?) {
+        throw "stage-update-feed-for-pages.ps1 failed."
     }
 }
 

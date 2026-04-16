@@ -111,7 +111,7 @@
                     <TextBox
                         x:Name="UpdateManifestUrlBox"
                         Header="Update manifest URL"
-                        PlaceholderText="https://updates.ichiphost.com/aegistune/stable/stable.json"
+                        PlaceholderText="https://jonhs22.github.io/aegistune/aegistune/stable/stable.json"
                         TextWrapping="Wrap" />
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <Button Click="SaveUpdateFeed_Click" Content="Save update settings" />

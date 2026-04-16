@@ -45,8 +45,8 @@ public sealed class AppSettingsTests
     [Fact]
     public void EffectiveUpdateManifestUrl_IsTrimmed()
     {
-        AppSettings settings = new(UpdateManifestUrl: " https://updates.ichiphost.com/aegistune/stable/stable.json ");
+        AppSettings settings = new(UpdateManifestUrl: " https://jonhs22.github.io/aegistune/aegistune/stable/stable.json ");
 
-        Assert.Equal("https://updates.ichiphost.com/aegistune/stable/stable.json", settings.EffectiveUpdateManifestUrl);
+        Assert.Equal("https://jonhs22.github.io/aegistune/aegistune/stable/stable.json", settings.EffectiveUpdateManifestUrl);
     }
 }

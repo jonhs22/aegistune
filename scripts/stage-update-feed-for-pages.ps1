@@ -2,7 +2,7 @@ param(
     [string]$Channel = "stable",
     [string]$ProductPath = "aegistune",
     [string]$SiteRoot = "",
-    [string]$PublicBaseUrl = "https://updates.ichiphost.com/aegistune/stable",
+    [string]$PublicBaseUrl = "https://jonhs22.github.io/aegistune/aegistune/stable",
     [string]$CName = "",
     [string]$PortableZipPath = "",
     [string]$MsixPath = "",

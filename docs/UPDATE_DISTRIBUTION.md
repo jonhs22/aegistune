@@ -2,14 +2,21 @@
 
 ## Canonical feed
 
-Publish one static update point for the stable channel:
+The current live public stable channel is:
 
-`https://updates.ichiphost.com/aegistune/stable/`
+`https://jonhs22.github.io/aegistune/aegistune/stable/`
 
 The app reads:
 
 - `stable.json` for update checks
-- `AegisTune.appinstaller` for packaged MSIX installs
+- the portable `zip` for portable updates
+- `AegisTune.appinstaller` only when a packaged `MSIX` publish is included in that channel run
+
+If you later move to a custom domain, keep the same layout under something like:
+
+`https://updates.ichiphost.com/aegistune/stable/`
+
+- then update the feed URL in app settings or your release automation.
 
 ## Build the update folder
 
@@ -19,7 +26,7 @@ The app reads:
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\prepare-update-channel.ps1 `
   -Channel stable `
-  -PublicBaseUrl https://updates.ichiphost.com/aegistune/stable
+  -PublicBaseUrl https://jonhs22.github.io/aegistune/aegistune/stable
 ```
 
 This writes:
@@ -47,7 +54,7 @@ Or point the packaging step at a specific notes file:
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\prepare-update-channel.ps1 `
   -Channel stable `
-  -PublicBaseUrl https://updates.ichiphost.com/aegistune/stable `
+  -PublicBaseUrl https://jonhs22.github.io/aegistune/aegistune/stable `
   -ReleaseNotesPath .\docs\releases\stable\1.0.25.0.md
 ```
 
@@ -67,8 +74,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\stage-update-feed-
   -Channel stable `
   -ProductPath aegistune `
   -SiteRoot .\artifacts\pages-site `
-  -PublicBaseUrl https://updates.ichiphost.com/aegistune/stable `
-  -CName updates.ichiphost.com
+  -PublicBaseUrl https://jonhs22.github.io/aegistune/aegistune/stable
 ```
 
 This writes a static site under:
@@ -89,7 +95,7 @@ What it does:
 
 1. restores and optionally tests the solution
 2. builds the portable bundle
-3. builds the `MSIX`
+3. optionally builds the `MSIX`
 4. stages the Pages site with `stage-update-feed-for-pages.ps1`
 5. deploys the site to GitHub Pages
 
@@ -109,6 +115,10 @@ What you should configure in the repository:
 If you do not set `UPDATE_PUBLIC_BASE_URL`, the workflow defaults to:
 
 - `https://OWNER.github.io/REPO/aegistune/stable`
+
+For this repo today, that resolves to:
+
+- `https://jonhs22.github.io/aegistune/aegistune/stable`
 
 If you use a custom domain, set:
 
@@ -139,6 +149,7 @@ Preview the upload plan without pushing anything:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\publish-update-feed-r2.ps1 `
   -BucketName aegistune-updates `
   -PublicBaseUrl https://updates.ichiphost.com/aegistune/stable `
+  -PortableOnly `
   -DryRun
 ```
 
@@ -147,13 +158,16 @@ Then publish for real:
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\publish-update-feed-r2.ps1 `
   -BucketName aegistune-updates `
-  -PublicBaseUrl https://updates.ichiphost.com/aegistune/stable
+  -PublicBaseUrl https://updates.ichiphost.com/aegistune/stable `
+  -PortableOnly
 ```
 
 This stages the same static site layout as GitHub Pages and uploads every file to R2 with cache rules:
 
 - `stable.json`, `.appinstaller`, notes, and HTML: low-cache / no-cache
 - `zip` and `MSIX`: long-cache immutable
+
+Use `-PortableOnly` for the same first-publish strategy as GitHub Pages when you want the public feed, release notes, and portable download live before you solve public MSIX signing.
 
 Put a public custom domain like `updates.ichiphost.com` in front of the bucket and keep the app feed URL on:
 

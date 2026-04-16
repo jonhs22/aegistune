@@ -6,7 +6,7 @@ public sealed record AppSettings(
     bool CheckForAppUpdatesOnLaunch = true,
     bool IncludeBrowserCleanup = false,
     bool PreferCompactNavigation = false,
-    string UpdateManifestUrl = "https://updates.ichiphost.com/aegistune/stable/stable.json",
+    string UpdateManifestUrl = "https://jonhs22.github.io/aegistune/aegistune/stable/stable.json",
     string CleanupExclusionPatterns = "",
     string DriverRepositoryPaths = "",
     bool OpenExportFolderAfterExport = false,
