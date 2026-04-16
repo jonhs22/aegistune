@@ -3,7 +3,11 @@ param(
     [string]$Platform = "x64",
     [string]$Project = ".\src\AegisTune.App\AegisTune.App.csproj",
     [ValidateRange(1, 20)]
-    [int]$KeepPackageCount = 2
+    [int]$KeepPackageCount = 2,
+    [string]$CodeSigningPfxPath = "",
+    [string]$CodeSigningPfxPassword = "",
+    [string]$TimestampUrl = "",
+    [switch]$RequireTrustedCertificate
 )
 
 $ErrorActionPreference = "Stop"
@@ -127,6 +131,70 @@ function Ensure-CodeSigningCertificate {
     return $certificate
 }
 
+function Load-CodeSigningPfxCertificate {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+        [string]$Password
+    )
+
+    $fullPath = [System.IO.Path]::GetFullPath($Path)
+    if (-not (Test-Path $fullPath)) {
+        throw "Trusted code-signing PFX was not found at $fullPath"
+    }
+
+    try {
+        $flags = [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable -bor
+            [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::PersistKeySet
+
+        if ([string]::IsNullOrWhiteSpace($Password)) {
+            return [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($fullPath, $null, $flags)
+        }
+
+        return [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($fullPath, $Password, $flags)
+    }
+    catch {
+        throw "Failed to load trusted code-signing certificate from $fullPath. $($_.Exception.Message)"
+    }
+}
+
+function Resolve-CodeSigningMaterial {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ManifestPublisher,
+        [string]$TrustedPfxPath,
+        [string]$TrustedPfxPassword,
+        [switch]$RequireTrustedCertificate
+    )
+
+    if (-not [string]::IsNullOrWhiteSpace($TrustedPfxPath)) {
+        $trustedCertificate = Load-CodeSigningPfxCertificate -Path $TrustedPfxPath -Password $TrustedPfxPassword
+        if (-not [string]::Equals($trustedCertificate.Subject, $ManifestPublisher, [System.StringComparison]::OrdinalIgnoreCase)) {
+            throw "Trusted code-signing certificate subject '$($trustedCertificate.Subject)' does not match the package manifest publisher '$ManifestPublisher'. Update Package.appxmanifest to the real publisher subject before producing public MSIX releases."
+        }
+
+        return @{
+            Mode = "TrustedPfx"
+            Subject = $trustedCertificate.Subject
+            Thumbprint = $trustedCertificate.Thumbprint
+            PfxPath = [System.IO.Path]::GetFullPath($TrustedPfxPath)
+            Password = $TrustedPfxPassword
+        }
+    }
+
+    if ($RequireTrustedCertificate) {
+        throw "Trusted MSIX signing was required, but no code-signing PFX path was provided."
+    }
+
+    $certificate = Ensure-CodeSigningCertificate -Subject $ManifestPublisher
+    return @{
+        Mode = "LocalSelfSigned"
+        Subject = $certificate.Subject
+        Thumbprint = $certificate.Thumbprint
+        Certificate = $certificate
+    }
+}
+
 Prune-StalePackageFolders -PackagesRoot (Join-Path $projectDirectory "AppPackages") -KeepCount $KeepPackageCount
 Remove-TransientDiagnosticLog -ArtifactsDirectory (Join-Path $repoRoot "artifacts")
 
@@ -170,8 +238,13 @@ if ($packageItem.LastWriteTimeUtc -lt $packageBuildStartedAtUtc.AddSeconds(-5)) 
     throw "Refusing to continue with a stale MSIX artifact: $packagePath"
 }
 
+$signingMaterial = Resolve-CodeSigningMaterial `
+    -ManifestPublisher $publisherSubject `
+    -TrustedPfxPath $CodeSigningPfxPath `
+    -TrustedPfxPassword $CodeSigningPfxPassword `
+    -RequireTrustedCertificate:$RequireTrustedCertificate
+
 Write-Host "[4/5] Signing packaged artifact for $publisherSubject..."
-$certificate = Ensure-CodeSigningCertificate -Subject $publisherSubject
 $signature = if ($packagePath) { Get-AuthenticodeSignature $packagePath } else { $null }
 $toolchain = if (Get-Command Resolve-WindowsSdkTools -ErrorAction SilentlyContinue) {
   Resolve-WindowsSdkTools -RequiredTools @("signtool")
@@ -190,20 +263,68 @@ $signTool = if ($toolchain) { $toolchain.SignTool } else {
 if (-not $packagePath) {
   Write-Warning "No MSIX package was found under AppPackages. Skipping signing."
 }
-elseif ($signature.Status -eq "Valid") {
+elseif ($signature.Status -eq "Valid" -and
+    $signature.SignerCertificate -and
+    [string]::Equals($signature.SignerCertificate.Subject, $publisherSubject, [System.StringComparison]::OrdinalIgnoreCase)) {
   Write-Host "Package is already signed: $packagePath"
 }
-elseif ($certificate -and $signTool) {
+elseif ($signingMaterial.Mode -eq "TrustedPfx" -and $signTool) {
+  Write-Host "Using trusted code-signing certificate: $($signingMaterial.Subject)"
   Write-Host "Using SignTool: $signTool"
-  & $signTool sign /fd SHA256 /sha1 $certificate.Thumbprint /s My $packagePath
+
+  $signArguments = @(
+    "sign"
+    "/fd"
+    "SHA256"
+    "/f"
+    $signingMaterial.PfxPath
+  )
+
+  if (-not [string]::IsNullOrWhiteSpace($signingMaterial.Password)) {
+    $signArguments += @("/p", $signingMaterial.Password)
+  }
+
+  if (-not [string]::IsNullOrWhiteSpace($TimestampUrl)) {
+    $signArguments += @("/tr", $TimestampUrl, "/td", "SHA256")
+  }
+  else {
+    Write-Warning "No timestamp URL was supplied. The trusted MSIX will be signed without a timestamp."
+  }
+
+  $signArguments += $packagePath
+
+  & $signTool @signArguments
+  if ($LASTEXITCODE -ne 0) {
+    throw "SignTool failed while signing $packagePath with the trusted PFX."
+  }
+
+  Write-Host "Signed package with trusted PFX: $packagePath"
+}
+elseif ($signingMaterial.Mode -eq "LocalSelfSigned" -and $signTool) {
+  Write-Host "Using SignTool: $signTool"
+  & $signTool sign /fd SHA256 /sha1 $signingMaterial.Thumbprint /s My $packagePath
   if ($LASTEXITCODE -ne 0) {
     throw "SignTool failed while signing $packagePath."
   }
 
-  Write-Host "Signed package: $packagePath"
+  Write-Host "Signed package with local self-signed certificate: $packagePath"
 }
 else {
+  if ($RequireTrustedCertificate -or $signingMaterial.Mode -eq "TrustedPfx") {
+    throw "Trusted MSIX signing was requested, but SignTool was not available."
+  }
+
   Write-Warning "No CurrentUser\\My publisher certificate or SignTool binary was found. Package remains unsigned."
+}
+
+$signature = if ($packagePath) { Get-AuthenticodeSignature $packagePath } else { $null }
+if ($packagePath -and $signature.Status -ne "Valid") {
+    throw "The signed MSIX did not validate successfully. Signature status: $($signature.Status)"
+}
+
+if ($packagePath -and $signature.SignerCertificate -and
+    -not [string]::Equals($signature.SignerCertificate.Subject, $publisherSubject, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "The signed MSIX uses signer subject '$($signature.SignerCertificate.Subject)', but Package.appxmanifest still declares '$publisherSubject'."
 }
 
 Prune-StalePackageFolders -PackagesRoot (Join-Path $projectDirectory "AppPackages") -KeepCount $KeepPackageCount

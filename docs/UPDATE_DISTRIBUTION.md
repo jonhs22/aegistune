@@ -111,6 +111,7 @@ What you should configure in the repository:
 - `Pages` enabled with `GitHub Actions` as the source
 - optional repo variable `UPDATE_PUBLIC_BASE_URL`
 - optional repo variable `UPDATE_CNAME`
+- for public `MSIX` publishing, also see `docs\PRODUCTION_MSIX_SIGNING.md`
 
 If you do not set `UPDATE_PUBLIC_BASE_URL`, the workflow defaults to:
 
@@ -185,4 +186,6 @@ Put a public custom domain like `updates.ichiphost.com` in front of the bucket a
 
 Public `MSIX` distribution still needs a trusted signing certificate for smooth installation on other machines. The local self-signed `CN=ichiphost` certificate is fine for controlled testing but not for normal public rollout.
 
-The GitHub Actions workflow can build and deploy with the current scripts, but if you want public end-user `MSIX` installs without certificate trust prompts, replace the local self-signed signing lane with a real trusted code-signing certificate in your release process.
+The GitHub Actions workflow now supports that trusted-certificate lane through repository secrets, but you still need to supply a real code-signing certificate and make sure the manifest publisher matches its subject. See:
+
+- `docs\PRODUCTION_MSIX_SIGNING.md`

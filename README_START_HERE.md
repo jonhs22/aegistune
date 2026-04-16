@@ -8,9 +8,11 @@
 - `docs/DEV_SETUP_CHECKLIST.md` — τι να εγκαταστήσεις στον dev υπολογιστή
 - `docs/PRODUCT_IMPLEMENTATION_BLUEPRINT.md` — πλήρες τεχνικό/προϊοντικό πλάνο
 - `docs/RELEASE_PACKAGING_PLAN.md` — packaging, signing, Store/direct release
+- `docs/PRODUCTION_MSIX_SIGNING.md` — trusted certificate setup για public MSIX publishing
 - `docs/REPO_STRUCTURE_AND_MILESTONES.md` — δομή solution και milestones
 - `docs/OFFICIAL_SOURCES.md` — πηγές Microsoft που χρησιμοποίησα
 - `scripts/build-msix.ps1` — βασικό PowerShell build script για MSIX
+- `scripts/prepare-msix-signing-secrets.ps1` — προετοιμάζει το trusted PFX bundle για GitHub secrets
 - `scripts/stage-update-feed-for-pages.ps1` — στήνει έτοιμο static update site για GitHub Pages ή custom domain
 - `scripts/publish-update-feed-r2.ps1` — ανεβάζει το ίδιο update site σε Cloudflare R2 μέσω Wrangler
 - `scripts/new-release-notes.ps1` — φτιάχνει release-notes template ανά έκδοση για το update viewer και το publish feed

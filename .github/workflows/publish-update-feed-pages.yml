@@ -99,10 +99,58 @@ jobs:
         shell: pwsh
         run: .\scripts\build-portable.ps1 -Platform x64 -Configuration Release
 
-      - name: Build MSIX
-        if: ${{ github.event_name == 'push' || github.event.inputs.include_msix == 'true' }}
+      - name: Resolve MSIX distribution mode
+        id: msix-mode
         shell: pwsh
-        run: .\scripts\build-msix.ps1 -Platform x64 -Configuration Release -KeepPackageCount 1
+        env:
+          MSIX_CERT_PFX_BASE64: ${{ secrets.MSIX_CERT_PFX_BASE64 }}
+          MSIX_CERT_PASSWORD: ${{ secrets.MSIX_CERT_PASSWORD }}
+        run: |
+          $msixRequested = ('${{ github.event_name }}' -eq 'push') -or ('${{ github.event.inputs.include_msix }}' -eq 'true')
+          $hasTrustedCertificate = (-not [string]::IsNullOrWhiteSpace($env:MSIX_CERT_PFX_BASE64)) -and (-not [string]::IsNullOrWhiteSpace($env:MSIX_CERT_PASSWORD))
+
+          if ('${{ github.event_name }}' -eq 'workflow_dispatch' -and '${{ github.event.inputs.include_msix }}' -eq 'true' -and -not $hasTrustedCertificate) {
+            throw 'include_msix=true requires the MSIX_CERT_PFX_BASE64 and MSIX_CERT_PASSWORD repository secrets.'
+          }
+
+          if ('${{ github.event_name }}' -eq 'push' -and $msixRequested -and -not $hasTrustedCertificate) {
+            Write-Warning 'This tag publish does not have trusted MSIX signing secrets yet. The workflow will publish the portable lane only.'
+          }
+
+          "should_publish_msix=$(( $msixRequested -and $hasTrustedCertificate).ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Materialize trusted MSIX certificate
+        id: msix-cert
+        if: ${{ steps.msix-mode.outputs.should_publish_msix == 'true' }}
+        shell: pwsh
+        env:
+          MSIX_CERT_PFX_BASE64: ${{ secrets.MSIX_CERT_PFX_BASE64 }}
+        run: |
+          $certificatePath = Join-Path $env:RUNNER_TEMP 'aegistune-signing-cert.pfx'
+          [System.IO.File]::WriteAllBytes($certificatePath, [System.Convert]::FromBase64String($env:MSIX_CERT_PFX_BASE64))
+          "certificate_path=$certificatePath" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Build MSIX
+        if: ${{ steps.msix-mode.outputs.should_publish_msix == 'true' }}
+        shell: pwsh
+        env:
+          MSIX_CERT_PASSWORD: ${{ secrets.MSIX_CERT_PASSWORD }}
+          MSIX_TIMESTAMP_URL: ${{ vars.MSIX_TIMESTAMP_URL }}
+        run: |
+          $buildArgs = @{
+            Platform = 'x64'
+            Configuration = 'Release'
+            KeepPackageCount = 1
+            CodeSigningPfxPath = '${{ steps.msix-cert.outputs.certificate_path }}'
+            CodeSigningPfxPassword = $env:MSIX_CERT_PASSWORD
+            RequireTrustedCertificate = $true
+          }
+
+          if (-not [string]::IsNullOrWhiteSpace($env:MSIX_TIMESTAMP_URL)) {
+            $buildArgs.TimestampUrl = $env:MSIX_TIMESTAMP_URL
+          }
+
+          .\scripts\build-msix.ps1 @buildArgs
 
       - name: Stage Pages site
         shell: pwsh
@@ -119,7 +167,7 @@ jobs:
             $stageArgs.CName = "${{ vars.UPDATE_CNAME }}"
           }
 
-          if ('${{ github.event_name }}' -ne 'push' -and '${{ github.event.inputs.include_msix }}' -ne 'true') {
+          if ('${{ steps.msix-mode.outputs.should_publish_msix }}' -ne 'true') {
             $stageArgs.PortableOnly = $true
           }
 
