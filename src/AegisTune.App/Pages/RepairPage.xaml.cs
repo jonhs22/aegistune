@@ -11,6 +11,8 @@ namespace AegisTune.App.Pages;
 
 public sealed partial class RepairPage : Page
 {
+    private const double MediumLayoutBreakpoint = 920;
+    private const double WideLayoutBreakpoint = 1320;
     private const string ScanAdvisoryScope = "Current repair scan advisory";
     private const string ManualAdvisoryScope = "Manual dependency advisory";
     private const string AppsSettingsUri = "ms-settings:appsfeatures";
@@ -28,6 +30,7 @@ public sealed partial class RepairPage : Page
     {
         InitializeComponent();
         Loaded += RepairPage_Loaded;
+        SizeChanged += RepairPage_SizeChanged;
     }
 
     public ModuleSnapshot? Module { get; private set; }
@@ -106,12 +109,19 @@ public sealed partial class RepairPage : Page
 
     private async void RepairPage_Loaded(object sender, RoutedEventArgs e)
     {
+        ApplyAdaptiveLayout(ActualWidth);
+
         if (Module is not null && ScanResult is not null)
         {
             return;
         }
 
         await ReloadAsync();
+    }
+
+    private void RepairPage_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        ApplyAdaptiveLayout(e.NewSize.Width);
     }
 
     private async Task ReloadAsync()
@@ -137,6 +147,78 @@ public sealed partial class RepairPage : Page
         }
 
         Bindings.Update();
+    }
+
+    private void ApplyAdaptiveLayout(double width)
+    {
+        if (width >= WideLayoutBreakpoint)
+        {
+            ApplyWideLayout();
+            return;
+        }
+
+        if (width >= MediumLayoutBreakpoint)
+        {
+            ApplyMediumLayout();
+            return;
+        }
+
+        ApplyNarrowLayout();
+    }
+
+    private void ApplyWideLayout()
+    {
+        LaneColumn1.Width = new GridLength(1, GridUnitType.Star);
+        LaneColumn2.Width = new GridLength(1, GridUnitType.Star);
+        LaneColumn3.Width = new GridLength(1, GridUnitType.Star);
+        LaneRow1.Height = GridLength.Auto;
+        LaneRow2.Height = new GridLength(0);
+        LaneRow3.Height = new GridLength(0);
+
+        Grid.SetRow(LaneQueueCard, 0);
+        Grid.SetColumn(LaneQueueCard, 0);
+        Grid.SetRow(LaneManualCard, 0);
+        Grid.SetColumn(LaneManualCard, 1);
+        Grid.SetRow(LaneUndoCard, 0);
+        Grid.SetColumn(LaneUndoCard, 2);
+    }
+
+    private void ApplyMediumLayout()
+    {
+        LaneColumn1.Width = new GridLength(1, GridUnitType.Star);
+        LaneColumn2.Width = new GridLength(1, GridUnitType.Star);
+        LaneColumn3.Width = new GridLength(0);
+        LaneRow1.Height = GridLength.Auto;
+        LaneRow2.Height = GridLength.Auto;
+        LaneRow3.Height = new GridLength(0);
+
+        Grid.SetRow(LaneQueueCard, 0);
+        Grid.SetColumn(LaneQueueCard, 0);
+        Grid.SetRow(LaneManualCard, 0);
+        Grid.SetColumn(LaneManualCard, 1);
+        Grid.SetRow(LaneUndoCard, 1);
+        Grid.SetColumn(LaneUndoCard, 0);
+        Grid.SetColumnSpan(LaneUndoCard, 2);
+    }
+
+    private void ApplyNarrowLayout()
+    {
+        LaneColumn1.Width = new GridLength(1, GridUnitType.Star);
+        LaneColumn2.Width = new GridLength(0);
+        LaneColumn3.Width = new GridLength(0);
+        LaneRow1.Height = GridLength.Auto;
+        LaneRow2.Height = GridLength.Auto;
+        LaneRow3.Height = GridLength.Auto;
+
+        Grid.SetRow(LaneQueueCard, 0);
+        Grid.SetColumn(LaneQueueCard, 0);
+        Grid.SetColumnSpan(LaneQueueCard, 1);
+        Grid.SetRow(LaneManualCard, 1);
+        Grid.SetColumn(LaneManualCard, 0);
+        Grid.SetColumnSpan(LaneManualCard, 1);
+        Grid.SetRow(LaneUndoCard, 2);
+        Grid.SetColumn(LaneUndoCard, 0);
+        Grid.SetColumnSpan(LaneUndoCard, 1);
     }
 
     private async void RefreshRepairScan_Click(object sender, RoutedEventArgs e)

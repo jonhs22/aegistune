@@ -72,11 +72,6 @@
                                 <SymbolIcon Symbol="Refresh" />
                             </AppBarButton.Icon>
                         </AppBarButton>
-                        <AppBarButton x:Name="InstallSelectedDriverButton" Click="InstallRepositoryCandidate_Click" Label="Install selected local driver">
-                            <AppBarButton.Icon>
-                                <SymbolIcon Symbol="Download" />
-                            </AppBarButton.Icon>
-                        </AppBarButton>
                         <AppBarButton x:Name="CheckLatestBiosButton" Click="CheckLatestBios_Click" Label="Check official BIOS version">
                             <AppBarButton.Icon>
                                 <SymbolIcon Symbol="Sync" />
@@ -285,8 +280,8 @@
                     <ColumnDefinition x:Name="DetailsColumn" Width="0" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition x:Name="QueueRow" Height="360" />
-                    <RowDefinition x:Name="DetailsRow" Height="*" />
+                    <RowDefinition x:Name="QueueRow" Height="Auto" />
+                    <RowDefinition x:Name="DetailsRow" Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <Border
@@ -299,7 +294,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Spacing="4">
                             <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Review queue" />
@@ -309,12 +304,43 @@
                         </StackPanel>
 
                         <Border Grid.Row="1" Style="{StaticResource InsetSurfaceCardStyle}">
-                            <StackPanel Spacing="6">
-                                <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{x:Bind QueueSelectionHeadline}" />
-                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind QueueSelectionStatusLine}" TextWrapping="WrapWholeWords" />
-                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind QueueSelectionWorkflowLine}" TextWrapping="WrapWholeWords" />
-                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind QueueSelectionCandidateLine}" TextWrapping="WrapWholeWords" />
-                            </StackPanel>
+                            <Grid ColumnSpacing="18" RowSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.5*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
+                                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{x:Bind QueueSelectionHeadline}" />
+                                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind QueueSelectionStatusLine}" TextWrapping="WrapWholeWords" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
+                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Recommended next lane" />
+                                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind QueueSelectionNextLaneLabel}" TextWrapping="WrapWholeWords" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4">
+                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Queue workflow" />
+                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind QueueSelectionCompactWorkflowLine}" TextWrapping="WrapWholeWords" />
+                                </StackPanel>
+                                <Grid Grid.Row="1" Grid.Column="1" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Spacing="4">
+                                        <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Current issue" />
+                                        <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind QueueSelectionIssueLabel}" TextWrapping="WrapWholeWords" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Spacing="4">
+                                        <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Selected local INF" />
+                                        <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind QueueSelectionCandidateCompactLine}" TextWrapping="WrapWholeWords" />
+                                    </StackPanel>
+                                </Grid>
+                            </Grid>
                         </Border>
 
                         <Grid
@@ -335,27 +361,27 @@
                                 x:Name="DeviceSearchBox"
                                 Grid.Row="0"
                                 Grid.Column="0"
-                                Header="Search devices"
-                                PlaceholderText="Search by device, class, provider, hardware ID, INF, or instance ID"
+                                PlaceholderText="Search devices by name, class, provider, hardware ID, INF, or instance ID"
                                 TextChanged="DeviceSearchBox_TextChanged" />
 
                             <ComboBox
                                 x:Name="FilterModeBox"
                                 Grid.Row="1"
                                 Grid.Column="0"
-                                Header="Queue focus"
                                 Loaded="FilterModeBox_Loaded"
                                 SelectionChanged="FilterModeBox_SelectionChanged">
-                                <ComboBoxItem Content="Needs review" />
-                                <ComboBoxItem Content="Priority review" />
-                                <ComboBoxItem Content="Critical classes" />
-                                <ComboBoxItem Content="All devices" />
+                                <ComboBoxItem Content="Start with problem devices" />
+                                <ComboBoxItem Content="High-risk devices" />
+                                <ComboBoxItem Content="Critical hardware classes" />
+                                <ComboBoxItem Content="All scanned devices" />
                             </ComboBox>
                         </Grid>
 
                         <ListView
                             x:Name="DriverQueueList"
                             Grid.Row="3"
+                            Height="560"
+                            MinHeight="480"
                             IsItemClickEnabled="True"
                             ItemClick="DriverQueueList_ItemClick"
                             SelectionChanged="DriverQueueList_SelectionChanged"
@@ -364,12 +390,13 @@
                             <ListView.ItemContainerStyle>
                                 <Style TargetType="ListViewItem">
                                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="Padding" Value="2" />
+                                    <Setter Property="Margin" Value="0,0,0,10" />
                                 </Style>
                             </ListView.ItemContainerStyle>
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="core:DriverDeviceRecord">
-                                    <Border Margin="0,0,0,10" Style="{StaticResource InsetSurfaceCardStyle}">
+                                    <Border Style="{StaticResource InsetSurfaceCardStyle}">
                                         <StackPanel Spacing="10">
                                             <Grid ColumnSpacing="12">
                                                 <Grid.ColumnDefinitions>
@@ -425,7 +452,6 @@
                                             </Grid>
 
                                             <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind VersionLabel}" />
-                                            <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Click this device card to load the selected-device review and actions below." TextWrapping="WrapWholeWords" />
                                         </StackPanel>
                                     </Border>
                                 </DataTemplate>
@@ -434,13 +460,11 @@
                     </Grid>
                 </Border>
 
-                <ScrollViewer
-                    x:Name="DetailsScrollViewer"
+                <StackPanel
+                    x:Name="DetailsPanel"
                     Grid.Row="1"
                     Grid.Column="0"
-                    HorizontalScrollBarVisibility="Disabled"
-                    VerticalScrollBarVisibility="Auto">
-                <StackPanel Spacing="16">
+                    Spacing="16">
                     <Border Style="{StaticResource SurfaceCardStyle}">
                         <Grid ColumnSpacing="18" RowSpacing="16">
                             <Grid.ColumnDefinitions>
@@ -476,244 +500,6 @@
                             </Border>
                         </Grid>
                     </Border>
-
-                    <Border Style="{StaticResource SurfaceCardStyle}">
-                        <StackPanel Spacing="12">
-                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Firmware posture" />
-                            <TextBlock Style="{StaticResource PageLeadTextStyle}" Text="{x:Bind FirmwareSupportIdentityLabel}" />
-                            <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind FirmwareReadinessSummary}" TextWrapping="WrapWholeWords" />
-
-                            <Grid ColumnSpacing="18" RowSpacing="10">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-
-                                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
-                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Identity source" />
-                                    <TextBlock Text="{x:Bind FirmwareSupportSourceLabel}" TextWrapping="WrapWholeWords" />
-                                </StackPanel>
-                                <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
-                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Firmware route" />
-                                    <TextBlock Text="{x:Bind FirmwareRouteLabel}" TextWrapping="WrapWholeWords" />
-                                </StackPanel>
-                                <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4">
-                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="BIOS vendor" />
-                                    <TextBlock Text="{x:Bind FirmwareBiosVendorLabel}" TextWrapping="WrapWholeWords" />
-                                </StackPanel>
-                                <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
-                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="BIOS version" />
-                                    <TextBlock Text="{x:Bind FirmwareBiosVersionLabel}" TextWrapping="WrapWholeWords" />
-                                </StackPanel>
-                                <StackPanel Grid.Row="2" Grid.Column="0" Spacing="4">
-                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Release date" />
-                                    <TextBlock Text="{x:Bind FirmwareReleaseDateLabel}" TextWrapping="WrapWholeWords" />
-                                </StackPanel>
-                                <StackPanel Grid.Row="2" Grid.Column="1" Spacing="4">
-                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Firmware age" />
-                                    <TextBlock Text="{x:Bind FirmwareAgeLabel}" TextWrapping="WrapWholeWords" />
-                                </StackPanel>
-                            </Grid>
-
-                            <Grid ColumnSpacing="18" RowSpacing="10">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-
-                                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
-                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Firmware mode" />
-                                    <TextBlock Text="{x:Bind FirmwareModeLabel}" TextWrapping="WrapWholeWords" />
-                                </StackPanel>
-                                <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
-                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Secure Boot" />
-                                    <TextBlock Text="{x:Bind FirmwareSecureBootLabel}" TextWrapping="WrapWholeWords" />
-                                </StackPanel>
-                                <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4">
-                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Firmware family version" />
-                                    <TextBlock Text="{x:Bind FirmwareFamilyVersionLabel}" TextWrapping="WrapWholeWords" />
-                                </StackPanel>
-                                <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
-                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Snapshot" />
-                                    <TextBlock Text="{x:Bind FirmwareCollectedAtLabel}" TextWrapping="WrapWholeWords" />
-                                </StackPanel>
-                            </Grid>
-
-                            <StackPanel Spacing="4">
-                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Security posture" />
-                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind FirmwareSecurityPostureLabel}" TextWrapping="WrapWholeWords" />
-                            </StackPanel>
-
-                            <StackPanel Spacing="4">
-                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="System identity" />
-                                <TextBlock Text="{x:Bind FirmwareSystemIdentityLabel}" TextWrapping="WrapWholeWords" />
-                            </StackPanel>
-
-                            <StackPanel Spacing="4">
-                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Baseboard identity" />
-                                <TextBlock Text="{x:Bind FirmwareBoardIdentityLabel}" TextWrapping="WrapWholeWords" />
-                            </StackPanel>
-
-                            <StackPanel Spacing="4">
-                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Official support route" />
-                                <TextBlock Text="{x:Bind FirmwarePrimarySupportUrlLabel}" TextWrapping="WrapWholeWords" />
-                            </StackPanel>
-
-                            <StackPanel Spacing="4">
-                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Support search hint" />
-                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind FirmwareSearchHintLabel}" TextWrapping="WrapWholeWords" />
-                            </StackPanel>
-
-                            <StackPanel Spacing="4">
-                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Technician options" />
-                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind FirmwareSupportOptionsPreview}" TextWrapping="WrapWholeWords" />
-                            </StackPanel>
-
-                             <Border Style="{StaticResource InsetSurfaceCardStyle}">
-                                 <StackPanel Spacing="8">
-                                     <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Latest release check" />
-                                     <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind FirmwareLookupStatusLine}" TextWrapping="WrapWholeWords" />
-                                     <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind FirmwareLookupGuidanceLine}" TextWrapping="WrapWholeWords" />
-
-                                    <Grid ColumnSpacing="18" RowSpacing="10">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                        </Grid.RowDefinitions>
-
-                                        <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
-                                            <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Lookup mode" />
-                                            <TextBlock Text="{x:Bind FirmwareLookupModeLabel}" TextWrapping="WrapWholeWords" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
-                                            <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Checked at" />
-                                            <TextBlock Text="{x:Bind FirmwareLookupCheckedAtLabel}" TextWrapping="WrapWholeWords" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4">
-                                            <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Latest BIOS version" />
-                                            <TextBlock Text="{x:Bind FirmwareLatestVersionLabel}" TextWrapping="WrapWholeWords" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
-                                            <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Latest release date" />
-                                            <TextBlock Text="{x:Bind FirmwareLatestReleaseDateLabel}" TextWrapping="WrapWholeWords" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Row="2" Grid.Column="0" Spacing="4">
-                                            <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Evidence source" />
-                                            <TextBlock Text="{x:Bind FirmwareLookupEvidenceSourceLabel}" TextWrapping="WrapWholeWords" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Row="2" Grid.Column="1" Spacing="4">
-                                            <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Lookup target" />
-                                            <TextBlock Text="{x:Bind FirmwareLookupDetailsUrlLabel}" TextWrapping="WrapWholeWords" />
-                                        </StackPanel>
-                                    </Grid>
-
-                                    <StackPanel Spacing="4">
-                                        <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Comparison summary" />
-                                        <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind FirmwareLookupComparisonSummary}" TextWrapping="WrapWholeWords" />
-                                    </StackPanel>
-
-                                    <StackPanel Spacing="4">
-                                        <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Vendor workflow" />
-                                        <TextBlock Text="{x:Bind FirmwareLookupToolTitleLabel}" TextWrapping="WrapWholeWords" />
-                                        <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind FirmwareLookupToolDetailLabel}" TextWrapping="WrapWholeWords" />
-                                    </StackPanel>
-
-                                    <StackPanel Spacing="4">
-                                        <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Search hint" />
-                                        <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind FirmwareLookupSearchHintLabel}" TextWrapping="WrapWholeWords" />
-                                     </StackPanel>
-                                 </StackPanel>
-                             </Border>
-
-                             <Border Style="{StaticResource InsetSurfaceCardStyle}">
-                                 <StackPanel Spacing="8">
-                                     <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Flash safety gates" />
-                                     <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind FirmwareSafetySummaryLine}" TextWrapping="WrapWholeWords" />
-
-                                     <Grid ColumnSpacing="18" RowSpacing="10">
-                                         <Grid.ColumnDefinitions>
-                                             <ColumnDefinition Width="*" />
-                                             <ColumnDefinition Width="*" />
-                                         </Grid.ColumnDefinitions>
-                                         <Grid.RowDefinitions>
-                                             <RowDefinition Height="Auto" />
-                                             <RowDefinition Height="Auto" />
-                                             <RowDefinition Height="Auto" />
-                                         </Grid.RowDefinitions>
-
-                                         <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
-                                             <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Overall posture" />
-                                             <TextBlock Text="{x:Bind FirmwareSafetyOverallPostureLabel}" TextWrapping="WrapWholeWords" />
-                                         </StackPanel>
-                                         <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
-                                             <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Checked at" />
-                                             <TextBlock Text="{x:Bind FirmwareSafetyCollectedAtLabel}" TextWrapping="WrapWholeWords" />
-                                         </StackPanel>
-                                         <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4">
-                                             <TextBlock Style="{StaticResource CaptionTextStyle}" Text="System drive" />
-                                             <TextBlock Text="{x:Bind FirmwareSafetySystemDriveLabel}" TextWrapping="WrapWholeWords" />
-                                         </StackPanel>
-                                         <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
-                                             <TextBlock Style="{StaticResource CaptionTextStyle}" Text="BitLocker" />
-                                             <TextBlock Text="{x:Bind FirmwareSafetyBitLockerStatusLine}" TextWrapping="WrapWholeWords" />
-                                         </StackPanel>
-                                         <StackPanel Grid.Row="2" Grid.Column="0" Spacing="4">
-                                             <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Power" />
-                                             <TextBlock Text="{x:Bind FirmwareSafetyPowerStatusLine}" TextWrapping="WrapWholeWords" />
-                                         </StackPanel>
-                                         <StackPanel Grid.Row="2" Grid.Column="1" Spacing="4">
-                                             <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Gate counts" />
-                                             <TextBlock Text="{x:Bind FirmwareSafetyBlockingGateSummary}" TextWrapping="WrapWholeWords" />
-                                             <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind FirmwareSafetyAttentionGateSummary}" TextWrapping="WrapWholeWords" />
-                                         </StackPanel>
-                                     </Grid>
-
-                                     <ItemsControl ItemsSource="{x:Bind FirmwareSafetyGates}">
-                                         <ItemsControl.ItemTemplate>
-                                             <DataTemplate x:DataType="core:FirmwareSafetyGate">
-                                                 <Border Margin="0,4,0,0" Style="{StaticResource SurfaceCardStyle}">
-                                                     <StackPanel Spacing="4">
-                                                         <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind SeverityLabel}" />
-                                                         <TextBlock Style="{StaticResource CardTitleTextStyle}" Text="{x:Bind Title}" TextWrapping="WrapWholeWords" />
-                                                         <TextBlock Text="{x:Bind StatusLine}" TextWrapping="WrapWholeWords" />
-                                                         <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind Detail}" TextWrapping="WrapWholeWords" />
-                                                         <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind RecommendedAction}" TextWrapping="WrapWholeWords" />
-                                                     </StackPanel>
-                                                 </Border>
-                                             </DataTemplate>
-                                         </ItemsControl.ItemTemplate>
-                                     </ItemsControl>
-
-                                     <Border Style="{StaticResource SurfaceCardStyle}">
-                                         <StackPanel Spacing="8">
-                                             <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Flash prep kit" />
-                                             <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Target summary" />
-                                             <TextBlock Text="{x:Bind FirmwareFlashTargetSummary}" TextWrapping="WrapWholeWords" />
-                                             <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Release-note route" />
-                                             <TextBlock Text="{x:Bind FirmwareFlashReleaseNotesSummary}" TextWrapping="WrapWholeWords" />
-                                             <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind FirmwareFlashReleaseNotesPreview}" TextWrapping="WrapWholeWords" />
-                                             <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Operator command kit" />
-                                             <TextBlock FontFamily="Cascadia Mono" Text="{x:Bind FirmwareFlashCommandPreview}" TextWrapping="WrapWholeWords" />
-                                         </StackPanel>
-                                     </Border>
-                                 </StackPanel>
-                             </Border>
-                         </StackPanel>
-                     </Border>
 
                     <Border Style="{StaticResource SurfaceCardStyle}">
                         <StackPanel Spacing="12">
@@ -1178,6 +964,79 @@
                         </StackPanel>
                     </Border>
 
+                    <Border Style="{StaticResource SurfaceCardStyle}">
+                        <StackPanel Spacing="12">
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Firmware posture" />
+                            <TextBlock Style="{StaticResource PageLeadTextStyle}" Text="{x:Bind FirmwareSupportIdentityLabel}" />
+                            <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind FirmwareReadinessSummary}" TextWrapping="WrapWholeWords" />
+
+                            <Grid ColumnSpacing="18" RowSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
+                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Identity source" />
+                                    <TextBlock Text="{x:Bind FirmwareSupportSourceLabel}" TextWrapping="WrapWholeWords" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
+                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Firmware route" />
+                                    <TextBlock Text="{x:Bind FirmwareRouteLabel}" TextWrapping="WrapWholeWords" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4">
+                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="BIOS version" />
+                                    <TextBlock Text="{x:Bind FirmwareBiosVersionLabel}" TextWrapping="WrapWholeWords" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Release date" />
+                                    <TextBlock Text="{x:Bind FirmwareReleaseDateLabel}" TextWrapping="WrapWholeWords" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="2" Grid.Column="0" Spacing="4">
+                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Firmware mode" />
+                                    <TextBlock Text="{x:Bind FirmwareModeLabel}" TextWrapping="WrapWholeWords" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="2" Grid.Column="1" Spacing="4">
+                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Secure Boot" />
+                                    <TextBlock Text="{x:Bind FirmwareSecureBootLabel}" TextWrapping="WrapWholeWords" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="3" Grid.Column="0" Spacing="4">
+                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Latest release check" />
+                                    <TextBlock Text="{x:Bind FirmwareLatestVersionLabel}" TextWrapping="WrapWholeWords" />
+                                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind FirmwareLookupComparisonSummary}" TextWrapping="WrapWholeWords" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="3" Grid.Column="1" Spacing="4">
+                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Flash safety" />
+                                    <TextBlock Text="{x:Bind FirmwareSafetyOverallPostureLabel}" TextWrapping="WrapWholeWords" />
+                                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind FirmwareSafetySummaryLine}" TextWrapping="WrapWholeWords" />
+                                </StackPanel>
+                            </Grid>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Official support route" />
+                                <TextBlock Text="{x:Bind FirmwarePrimarySupportUrlLabel}" TextWrapping="WrapWholeWords" />
+                                <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind FirmwareLookupGuidanceLine}" TextWrapping="WrapWholeWords" />
+                            </StackPanel>
+
+                            <Border Style="{StaticResource InsetSurfaceCardStyle}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Flash prep kit" />
+                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Target summary" />
+                                    <TextBlock Text="{x:Bind FirmwareFlashTargetSummary}" TextWrapping="WrapWholeWords" />
+                                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Release-note route" />
+                                    <TextBlock Text="{x:Bind FirmwareFlashReleaseNotesSummary}" TextWrapping="WrapWholeWords" />
+                                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind FirmwareFlashReleaseNotesPreview}" TextWrapping="WrapWholeWords" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
                     <Border Style="{StaticResource InsetSurfaceCardStyle}">
                         <StackPanel Spacing="8">
                             <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Remediation plan export" />
@@ -1186,21 +1045,6 @@
                             <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind PlanExportDirectoryLabel}" TextWrapping="WrapWholeWords" />
                             <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Markdown plan" />
                             <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind PlanMarkdownPathLabel}" TextWrapping="WrapWholeWords" />
-                        </StackPanel>
-                    </Border>
-
-                    <Border Style="{StaticResource InsetSurfaceCardStyle}">
-                        <StackPanel Spacing="8">
-                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Priority devices right now" />
-                            <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind PriorityReviewSummary}" TextWrapping="WrapWholeWords" />
-                            <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Use this queue as the first technician handoff set before any manual remediation path." />
-                        </StackPanel>
-                    </Border>
-
-                    <Border Style="{StaticResource InsetSurfaceCardStyle}">
-                        <StackPanel Spacing="8">
-                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Technician handoff" />
-                            <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Use the copied technician brief or the export files when you need a deeper manual handoff artifact." />
                         </StackPanel>
                     </Border>
 
@@ -1231,7 +1075,6 @@
                         </StackPanel>
                     </Border>
                 </StackPanel>
-                </ScrollViewer>
             </Grid>
         </Grid>
     </ScrollViewer>

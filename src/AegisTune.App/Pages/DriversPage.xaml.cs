@@ -10,12 +10,12 @@ namespace AegisTune.App.Pages;
 
 public sealed partial class DriversPage : Page
 {
-    private const double MediumLayoutBreakpoint = 760;
-    private const double WideLayoutBreakpoint = 1200;
-    private const string NeedsReviewFilter = "Needs review";
-    private const string PriorityReviewFilter = "Priority review";
-    private const string CriticalClassFilter = "Critical classes";
-    private const string AllDevicesFilter = "All devices";
+    private const double MediumLayoutBreakpoint = 700;
+    private const double WideLayoutBreakpoint = 1040;
+    private const string NeedsReviewFilter = "Start with problem devices";
+    private const string PriorityReviewFilter = "High-risk devices";
+    private const string CriticalClassFilter = "Critical hardware classes";
+    private const string AllDevicesFilter = "All scanned devices";
 
     private string? _loadErrorMessage;
     private string? _actionStatusMessage;
@@ -199,7 +199,7 @@ public sealed partial class DriversPage : Page
 
     public string FilterSummaryLabel => Inventory is null
         ? "Collecting device inventory."
-        : $"{FilteredDevices.Count:N0} of {Inventory.TotalDeviceCount:N0} devices shown for {_activeFilter.ToLowerInvariant()} review.";
+        : $"{FilteredDevices.Count:N0} of {Inventory.TotalDeviceCount:N0} devices shown in {_activeFilter} mode.";
 
     public string QueueCapStatusLabel
     {
@@ -238,6 +238,22 @@ public sealed partial class DriversPage : Page
         : HasSelectedRepositoryCandidate
             ? $"{SelectedRepositoryCandidateCountLabel} are ready for this selected device. Use Local driver install only if that vetted INF is the intended path."
             : "No vetted local INF candidate is selected for this device yet. Stay on the recommended review path or add repository roots in Settings.";
+
+    public string QueueSelectionIssueLabel => SelectedDevice?.HealthLabel ?? "Choose one device in the queue first.";
+
+    public string QueueSelectionNextLaneLabel => SelectedDevice is null
+        ? "Pick a device to load the recommended fix lane."
+        : CurrentSelectedDriverNextAction.Headline;
+
+    public string QueueSelectionCandidateCompactLine => SelectedDevice is null
+        ? "Device-specific install stays locked until a queue selection exists."
+        : HasSelectedRepositoryCandidate
+            ? $"{SelectedRepositoryCandidateCountLabel} ready for this selected device."
+            : "No vetted local INF selected yet.";
+
+    public string QueueSelectionCompactWorkflowLine => SelectedDevice is null
+        ? "The queue drives the selected-device review and next-step actions."
+        : SelectedDeviceActionPlan;
 
     public string PriorityReviewSummary
     {
@@ -597,11 +613,6 @@ public sealed partial class DriversPage : Page
         if (OpenAuditFolderButton is not null)
         {
             OpenAuditFolderButton.IsEnabled = HasExportDirectory;
-        }
-
-        if (InstallSelectedDriverButton is not null)
-        {
-            InstallSelectedDriverButton.IsEnabled = HasSelectedRepositoryCandidate;
         }
 
         if (CheckLatestBiosButton is not null)
@@ -1662,16 +1673,21 @@ public sealed partial class DriversPage : Page
         Grid.SetRow(MetricNoIdentifierCard, 0);
         Grid.SetColumn(MetricNoIdentifierCard, 3);
 
-        QueueColumn.Width = new GridLength(420);
+        QueueColumn.Width = new GridLength(580);
         DetailsColumn.Width = new GridLength(1, GridUnitType.Star);
-        QueueRow.Height = new GridLength(880);
+        QueueRow.Height = GridLength.Auto;
         DetailsRow.Height = new GridLength(0);
         Grid.SetRow(QueuePanel, 0);
         Grid.SetColumn(QueuePanel, 0);
-        Grid.SetRow(DetailsScrollViewer, 0);
-        Grid.SetColumn(DetailsScrollViewer, 1);
+        Grid.SetRow(DetailsPanel, 0);
+        Grid.SetColumn(DetailsPanel, 1);
 
-        QueueFilterColumn.Width = new GridLength(180);
+        if (DriverQueueList is not null)
+        {
+            DriverQueueList.Height = 760;
+        }
+
+        QueueFilterColumn.Width = new GridLength(220);
         QueueFilterRow.Height = new GridLength(0);
         Grid.SetRow(FilterModeBox, 0);
         Grid.SetColumn(FilterModeBox, 1);
@@ -1703,14 +1719,19 @@ public sealed partial class DriversPage : Page
 
         QueueColumn.Width = new GridLength(1, GridUnitType.Star);
         DetailsColumn.Width = new GridLength(0);
-        QueueRow.Height = new GridLength(520);
-        DetailsRow.Height = new GridLength(920);
+        QueueRow.Height = GridLength.Auto;
+        DetailsRow.Height = GridLength.Auto;
         Grid.SetRow(QueuePanel, 0);
         Grid.SetColumn(QueuePanel, 0);
-        Grid.SetRow(DetailsScrollViewer, 1);
-        Grid.SetColumn(DetailsScrollViewer, 0);
+        Grid.SetRow(DetailsPanel, 1);
+        Grid.SetColumn(DetailsPanel, 0);
 
-        QueueFilterColumn.Width = new GridLength(180);
+        if (DriverQueueList is not null)
+        {
+            DriverQueueList.Height = 680;
+        }
+
+        QueueFilterColumn.Width = new GridLength(220);
         QueueFilterRow.Height = new GridLength(0);
         Grid.SetRow(FilterModeBox, 0);
         Grid.SetColumn(FilterModeBox, 1);
@@ -1742,12 +1763,17 @@ public sealed partial class DriversPage : Page
 
         QueueColumn.Width = new GridLength(1, GridUnitType.Star);
         DetailsColumn.Width = new GridLength(0);
-        QueueRow.Height = new GridLength(460);
-        DetailsRow.Height = new GridLength(980);
+        QueueRow.Height = GridLength.Auto;
+        DetailsRow.Height = GridLength.Auto;
         Grid.SetRow(QueuePanel, 0);
         Grid.SetColumn(QueuePanel, 0);
-        Grid.SetRow(DetailsScrollViewer, 1);
-        Grid.SetColumn(DetailsScrollViewer, 0);
+        Grid.SetRow(DetailsPanel, 1);
+        Grid.SetColumn(DetailsPanel, 0);
+
+        if (DriverQueueList is not null)
+        {
+            DriverQueueList.Height = 560;
+        }
 
         QueueFilterColumn.Width = new GridLength(0);
         QueueFilterRow.Height = GridLength.Auto;

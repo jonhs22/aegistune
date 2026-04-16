@@ -55,14 +55,19 @@
                 </StackPanel>
             </Border>
 
-            <Grid ColumnSpacing="16" RowSpacing="16">
+            <Grid x:Name="LaneSummaryGrid" ColumnSpacing="16" RowSpacing="16">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition x:Name="LaneColumn1" Width="*" />
+                    <ColumnDefinition x:Name="LaneColumn2" Width="*" />
+                    <ColumnDefinition x:Name="LaneColumn3" Width="*" />
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition x:Name="LaneRow1" Height="Auto" />
+                    <RowDefinition x:Name="LaneRow2" Height="0" />
+                    <RowDefinition x:Name="LaneRow3" Height="0" />
+                </Grid.RowDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource CommandSurfaceCardStyle}">
+                <Border x:Name="LaneQueueCard" Grid.Row="0" Grid.Column="0" Style="{StaticResource CommandSurfaceCardStyle}">
                     <StackPanel Spacing="8">
                         <TextBlock Style="{StaticResource SectionEyebrowTextStyle}" Text="Lane 1" />
                         <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Repair queue" />
@@ -71,7 +76,7 @@
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="1" Style="{StaticResource CommandSurfaceCardStyle}">
+                <Border x:Name="LaneManualCard" Grid.Row="0" Grid.Column="1" Style="{StaticResource CommandSurfaceCardStyle}">
                     <StackPanel Spacing="8">
                         <TextBlock Style="{StaticResource SectionEyebrowTextStyle}" Text="Lane 2" />
                         <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Manual dependency triage" />
@@ -80,7 +85,7 @@
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="2" Style="{StaticResource CommandSurfaceCardStyle}">
+                <Border x:Name="LaneUndoCard" Grid.Row="0" Grid.Column="2" Style="{StaticResource CommandSurfaceCardStyle}">
                     <StackPanel Spacing="8">
                         <TextBlock Style="{StaticResource SectionEyebrowTextStyle}" Text="Lane 3" />
                         <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Undo and rollback" />
