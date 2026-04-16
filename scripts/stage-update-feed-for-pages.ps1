@@ -6,7 +6,8 @@ param(
     [string]$CName = "",
     [string]$PortableZipPath = "",
     [string]$MsixPath = "",
-    [string]$ReleaseNotesUrl = ""
+    [string]$ReleaseNotesUrl = "",
+    [switch]$PortableOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -108,6 +109,10 @@ if (-not [string]::IsNullOrWhiteSpace($ReleaseNotesUrl)) {
     $prepareArgs += @("-ReleaseNotesUrl", $ReleaseNotesUrl)
 }
 
+if ($PortableOnly) {
+    $prepareArgs += "-PortableOnly"
+}
+
 & powershell @prepareArgs
 if ($LASTEXITCODE -ne 0) {
     throw "prepare-update-channel.ps1 failed with exit code $LASTEXITCODE."
@@ -121,6 +126,39 @@ if (-not (Test-Path $stableManifestPath)) {
 $stableManifest = Get-Content -Path $stableManifestPath -Raw | ConvertFrom-Json
 $productLandingDirectory = Resolve-RepoPath -Path (Join-Path $siteRootFullPath $normalizedProductPath)
 $relativeChannelPath = (($normalizedProductPath -replace '\\', '/') + "/$Channel").TrimStart('/')
+$portableFileName = Split-Path -Leaf $stableManifest.portable.url
+$hasMsix = $null -ne $stableManifest.msix -and -not [string]::IsNullOrWhiteSpace($stableManifest.msix.appInstallerUrl)
+$packagedCta = if ($hasMsix) {
+@"
+          <a class="cta primary" href="./$Channel/AegisTune.appinstaller">
+            <strong>Install or update packaged build</strong>
+            <span>Launches the MSIX App Installer flow for the current stable release.</span>
+          </a>
+"@
+} else {
+@"
+          <div class="cta primary">
+            <strong>Packaged build not published here yet</strong>
+            <span>This GitHub Pages channel currently serves the portable build and release notes only.</span>
+          </div>
+"@
+}
+
+$packagedMeta = if ($hasMsix) {
+@"
+          <div>
+            <div class="meta-label">MSIX App Installer</div>
+            <div class="mono"><a href="./$Channel/AegisTune.appinstaller">./$relativeChannelPath/AegisTune.appinstaller</a></div>
+          </div>
+"@
+} else {
+@"
+          <div>
+            <div class="meta-label">MSIX App Installer</div>
+            <div class="mono">Not included in this publish</div>
+          </div>
+"@
+}
 
 $rootIndexContent = @"
 <!doctype html>
@@ -262,11 +300,8 @@ $productIndexContent = @"
         <h1>AegisTune stable updates</h1>
         <p>Use this page as the single public update point for packaged installs, portable downloads, release notes, and machine-readable update manifests.</p>
         <div class="cta-row">
-          <a class="cta primary" href="./$Channel/AegisTune.appinstaller">
-            <strong>Install or update packaged build</strong>
-            <span>Launches the MSIX App Installer flow for the current stable release.</span>
-          </a>
-          <a class="cta" href="./$Channel/$(Split-Path -Leaf $stableManifest.portable.url)">
+$packagedCta
+          <a class="cta" href="./$Channel/$portableFileName">
             <strong>Download portable zip</strong>
             <span>Gets the current portable bundle without going through Microsoft App Installer.</span>
           </a>
@@ -285,10 +320,7 @@ $productIndexContent = @"
             <div class="meta-label">Stable manifest</div>
             <div class="mono"><a href="./$Channel/stable.json">./$relativeChannelPath/stable.json</a></div>
           </div>
-          <div>
-            <div class="meta-label">MSIX App Installer</div>
-            <div class="mono"><a href="./$Channel/AegisTune.appinstaller">./$relativeChannelPath/AegisTune.appinstaller</a></div>
-          </div>
+$packagedMeta
           <div>
             <div class="meta-label">Published at</div>
             <div class="mono">$($stableManifest.publishedAt)</div>

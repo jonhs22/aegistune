@@ -96,8 +96,9 @@ What it does:
 Operational note:
 
 - tag pushes like `v1.0.25.0` still run the full test lane automatically
-- manual `Run workflow` publishes default to `run_tests=false` so you can bring the first update feed online even if the GitHub runner shows a CI-only test failure
+- manual `Run workflow` publishes default to `run_tests=false` and `include_msix=false` so you can bring the first update feed online even if the GitHub runner shows a CI-only test failure or the hosted runner hangs on the MSIX packaging lane
 - when manual or tag-based tests are enabled, the workflow now uploads a `pages-test-diagnostics` artifact with `trx` and `vstest` logs for exact failure triage
+- manual portable-first publishes still generate the full `stable.json`, portable zip, and release notes site; they simply omit `AegisTune.appinstaller` and the hosted `MSIX` package for that run
 
 What you should configure in the repository:
 

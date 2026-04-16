@@ -11,6 +11,10 @@ on:
         description: Run automated tests before packaging
         required: true
         default: "false"
+      include_msix:
+        description: Build and publish MSIX artifacts in addition to the portable update channel
+        required: true
+        default: "false"
   push:
     tags:
       - "v*"
@@ -96,6 +100,7 @@ jobs:
         run: .\scripts\build-portable.ps1 -Platform x64 -Configuration Release
 
       - name: Build MSIX
+        if: ${{ github.event_name == 'push' || github.event.inputs.include_msix == 'true' }}
         shell: pwsh
         run: .\scripts\build-msix.ps1 -Platform x64 -Configuration Release -KeepPackageCount 1
 
@@ -103,12 +108,19 @@ jobs:
         shell: pwsh
         run: |
           $channel = "${{ github.event.inputs.channel || 'stable' }}"
-          .\scripts\stage-update-feed-for-pages.ps1 `
-            -Channel $channel `
-            -ProductPath aegistune `
-            -SiteRoot .\artifacts\pages-site `
-            -PublicBaseUrl "${{ steps.update-base.outputs.public_base_url }}" `
-            -CName "${{ vars.UPDATE_CNAME }}"
+          $stageArgs = @(
+            '-Channel', $channel,
+            '-ProductPath', 'aegistune',
+            '-SiteRoot', '.\artifacts\pages-site',
+            '-PublicBaseUrl', "${{ steps.update-base.outputs.public_base_url }}",
+            '-CName', "${{ vars.UPDATE_CNAME }}"
+          )
+
+          if ('${{ github.event_name }}' -ne 'push' -and '${{ github.event.inputs.include_msix }}' -ne 'true') {
+            $stageArgs += '-PortableOnly'
+          }
+
+          .\scripts\stage-update-feed-for-pages.ps1 @stageArgs
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

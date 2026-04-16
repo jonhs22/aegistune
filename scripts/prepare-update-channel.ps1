@@ -5,7 +5,8 @@ param(
     [string]$MsixPath = "",
     [string]$OutputDirectory = "",
     [string]$ReleaseNotesUrl = "",
-    [string]$ReleaseNotesPath = ""
+    [string]$ReleaseNotesPath = "",
+    [switch]$PortableOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -102,11 +103,14 @@ else {
     Resolve-RepoPath -Path $PortableZipPath
 }
 
-$msixFullPath = if ([string]::IsNullOrWhiteSpace($MsixPath)) {
-    Resolve-LatestFile -SearchRoot (Join-Path $repoRoot "src\AegisTune.App\AppPackages") -Filter "*.msix"
-}
-else {
-    Resolve-RepoPath -Path $MsixPath
+$msixFullPath = $null
+if (-not $PortableOnly) {
+    $msixFullPath = if ([string]::IsNullOrWhiteSpace($MsixPath)) {
+        Resolve-LatestFile -SearchRoot (Join-Path $repoRoot "src\AegisTune.App\AppPackages") -Filter "*.msix"
+    }
+    else {
+        Resolve-RepoPath -Path $MsixPath
+    }
 }
 
 $channelDirectory = if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
@@ -123,17 +127,19 @@ if (Test-Path $channelDirectory) {
 New-Item -ItemType Directory -Path $channelDirectory -Force | Out-Null
 
 $portableFileName = [System.IO.Path]::GetFileName($portableZipFullPath)
-$msixFileName = [System.IO.Path]::GetFileName($msixFullPath)
+$msixFileName = if ($msixFullPath) { [System.IO.Path]::GetFileName($msixFullPath) } else { $null }
 $appInstallerFileName = "AegisTune.appinstaller"
 $releaseNotesFileName = "RELEASE-NOTES.md"
 
 Copy-Item -LiteralPath $portableZipFullPath -Destination (Join-Path $channelDirectory $portableFileName)
-Copy-Item -LiteralPath $msixFullPath -Destination (Join-Path $channelDirectory $msixFileName)
+if ($msixFullPath) {
+    Copy-Item -LiteralPath $msixFullPath -Destination (Join-Path $channelDirectory $msixFileName)
+}
 
 $normalizedBaseUrl = $PublicBaseUrl.TrimEnd('/')
 $portableUrl = "$normalizedBaseUrl/$portableFileName"
-$msixUrl = "$normalizedBaseUrl/$msixFileName"
-$appInstallerUrl = "$normalizedBaseUrl/$appInstallerFileName"
+$msixUrl = if ($msixFileName) { "$normalizedBaseUrl/$msixFileName" } else { $null }
+$appInstallerUrl = if ($msixFileName) { "$normalizedBaseUrl/$appInstallerFileName" } else { $null }
 $effectiveReleaseNotesUrl = if ([string]::IsNullOrWhiteSpace($ReleaseNotesUrl)) {
     "$normalizedBaseUrl/$releaseNotesFileName"
 }
@@ -142,7 +148,7 @@ else {
 }
 
 $portableSha = Get-Sha256 -Path $portableZipFullPath
-$msixSha = Get-Sha256 -Path $msixFullPath
+$msixSha = if ($msixFullPath) { Get-Sha256 -Path $msixFullPath } else { $null }
 
 $generatedReleaseNotesPath = Join-Path $channelDirectory $releaseNotesFileName
 $releaseNotesSourcePath = Resolve-ReleaseNotesSource -RepoRoot $repoRoot -Channel $Channel -Version $version -RequestedPath $ReleaseNotesPath
@@ -161,8 +167,8 @@ else {
         "",
         "- Version: $version",
         "- Channel: $Channel",
-        "- Portable zip: $portableFileName",
-        "- MSIX: $msixFileName",
+        "- Portable zip: $portableFileName"
+        if ($msixFileName) { "- MSIX: $msixFileName" } else { "- MSIX: not included in this publish" },
         "",
         "## Highlights",
         "",
@@ -184,7 +190,10 @@ $stableManifest = [ordered]@{
         url = $portableUrl
         sha256 = $portableSha
     }
-    msix = [ordered]@{
+}
+
+if ($msixFileName) {
+    $stableManifest.msix = [ordered]@{
         url = $msixUrl
         appInstallerUrl = $appInstallerUrl
         sha256 = $msixSha
@@ -194,7 +203,8 @@ $stableManifest = [ordered]@{
 $stableManifest | ConvertTo-Json -Depth 6 | Set-Content -Path $stableManifestPath -Encoding UTF8
 
 $appInstallerPath = Join-Path $channelDirectory $appInstallerFileName
-$appInstallerXml = @"
+if ($msixFileName) {
+    $appInstallerXml = @"
 <?xml version="1.0" encoding="utf-8"?>
 <AppInstaller
     xmlns="http://schemas.microsoft.com/appx/appinstaller/2021"
@@ -212,10 +222,11 @@ $appInstallerXml = @"
 </AppInstaller>
 "@
 
-$appInstallerXml | Set-Content -Path $appInstallerPath -Encoding UTF8
+    $appInstallerXml | Set-Content -Path $appInstallerPath -Encoding UTF8
+}
 
 $readmePath = Join-Path $channelDirectory "DEPLOY-UPDATE-FEED.txt"
-@(
+$readmeLines = @(
     "AegisTune update channel",
     "=======================",
     "",
@@ -225,18 +236,37 @@ $readmePath = Join-Path $channelDirectory "DEPLOY-UPDATE-FEED.txt"
     "Then point the app update feed URL to:",
     "$normalizedBaseUrl/stable.json",
     "",
-    "For packaged installs, distribute:",
-    "$normalizedBaseUrl/$appInstallerFileName",
-    "",
     "Application Id:",
     $appId
-) | Set-Content -Path $readmePath -Encoding UTF8
+)
+
+if ($msixFileName) {
+    $readmeLines += @(
+        "",
+        "For packaged installs, distribute:",
+        "$normalizedBaseUrl/$appInstallerFileName"
+    )
+}
+else {
+    $readmeLines += @(
+        "",
+        "Packaged MSIX artifacts were not included in this publish.",
+        "This channel currently serves the portable build only."
+    )
+}
+
+$readmeLines | Set-Content -Path $readmePath -Encoding UTF8
 
 Write-Host "Prepared update channel folder: $channelDirectory"
 Write-Host "stable.json: $stableManifestPath"
-Write-Host "App Installer file: $appInstallerPath"
 Write-Host "Portable zip copied as: $portableFileName"
-Write-Host "MSIX copied as: $msixFileName"
+if ($msixFileName) {
+    Write-Host "App Installer file: $appInstallerPath"
+    Write-Host "MSIX copied as: $msixFileName"
+}
+else {
+    Write-Host "Portable-only publish completed; no MSIX/App Installer files were generated."
+}
 if ($releaseNotesSourcePath) {
     Write-Host "Release notes source: $releaseNotesSourcePath"
 }

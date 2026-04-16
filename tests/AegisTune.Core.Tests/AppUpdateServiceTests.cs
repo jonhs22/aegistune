@@ -121,6 +121,41 @@ public sealed class AppUpdateServiceTests
     }
 
     [Fact]
+    public async Task RefreshAsync_WhenPackagedFeedOmitsMsix_FallsBackToFeedUrl()
+    {
+        const string json = """
+{
+  "channel": "stable",
+  "version": "1.0.26.0",
+  "portable": {
+    "url": "https://updates.example.com/AegisTune-1.0.26.0-win-x64-portable.zip",
+    "sha256": "abc"
+  }
+}
+""";
+
+        FakeSettingsStore settingsStore = new(new AppSettings(UpdateManifestUrl: "https://updates.example.com/stable.json"));
+        HttpClient client = new(new StubMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(json)
+        }));
+
+        AppUpdateService service = new(
+            settingsStore,
+            NullLogger<AppUpdateService>.Instance,
+            client,
+            currentVersionOverride: "1.0.25.0",
+            distributionKindOverride: AppDistributionKind.Packaged);
+
+        AppUpdateState state = await service.RefreshAsync(false);
+
+        Assert.True(state.IsUpdateAvailable);
+        Assert.Equal("https://updates.example.com/stable.json", state.PreferredUpdateUrl);
+        Assert.True(string.IsNullOrWhiteSpace(state.AppInstallerUrl));
+        Assert.True(string.IsNullOrWhiteSpace(state.MsixPackageUrl));
+    }
+
+    [Fact]
     public async Task RefreshAsync_WhenFeedFails_ReturnsErrorState()
     {
         FakeSettingsStore settingsStore = new(new AppSettings(UpdateManifestUrl: "https://updates.example.com/stable.json"));
