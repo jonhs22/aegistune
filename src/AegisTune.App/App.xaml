@@ -70,6 +70,19 @@
                 <Setter Property="Padding" Value="12" />
             </Style>
 
+            <Style x:Key="CommandSurfaceCardStyle" TargetType="Border" BasedOn="{StaticResource SurfaceCardStyle}">
+                <Setter Property="Background" Value="{ThemeResource ShellSurfaceAltBrush}" />
+                <Setter Property="CornerRadius" Value="20" />
+                <Setter Property="Padding" Value="14" />
+            </Style>
+
+            <Style x:Key="PaneHeaderCardStyle" TargetType="Border" BasedOn="{StaticResource CompactSurfaceCardStyle}">
+                <Setter Property="Background" Value="{ThemeResource ShellHeroBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource ShellAccentSoftBrush}" />
+                <Setter Property="CornerRadius" Value="18" />
+                <Setter Property="Padding" Value="14" />
+            </Style>
+
             <Style x:Key="PageTitleTextStyle" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="26" />
                 <Setter Property="FontWeight" Value="SemiBold" />
@@ -113,6 +126,12 @@
                 <Setter Property="TextWrapping" Value="Wrap" />
             </Style>
 
+            <Style x:Key="SectionEyebrowTextStyle" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextStyle}">
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{ThemeResource ShellAccentBrush}" />
+                <Setter Property="CharacterSpacing" Value="50" />
+            </Style>
+
             <Style x:Key="MetricValueTextStyle" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="24" />
                 <Setter Property="FontWeight" Value="SemiBold" />
@@ -127,6 +146,19 @@
                 <Setter Property="Padding" Value="0" />
                 <Setter Property="DefaultLabelPosition" Value="Right" />
                 <Setter Property="IsDynamicOverflowEnabled" Value="True" />
+            </Style>
+
+            <Style x:Key="WorkflowChipBorderStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource ShellAccentSoftBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource ShellAccentSoftBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="999" />
+                <Setter Property="Padding" Value="10,4" />
+            </Style>
+
+            <Style x:Key="WorkflowChipTextStyle" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextStyle}">
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{ThemeResource ShellAccentSecondaryBrush}" />
             </Style>
 
             <Style x:Key="PrimaryCtaButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">

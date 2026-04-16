@@ -11,17 +11,34 @@
 
     <ScrollViewer>
         <StackPanel Padding="{StaticResource PagePadding}" Spacing="24">
-            <TextBlock Style="{StaticResource PageTitleTextStyle}" Text="Repair &amp; Recovery" />
-            <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ModuleSubtitle}" />
-            <TextBlock
-                Style="{StaticResource PageLeadTextStyle}"
-                Text="Use this page in order: scan repair candidates, review the proof, open only official repair surfaces, then copy or export the final advisory."
-                TextWrapping="WrapWholeWords" />
-
-            <Border Style="{StaticResource SurfaceCardStyle}">
+            <Border Style="{StaticResource HeroSurfaceCardStyle}">
                 <StackPanel Spacing="10">
-                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Repair contract" />
-                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ModuleStatusLine}" />
+                    <TextBlock Style="{StaticResource PageEyebrowTextStyle}" Text="REPAIR &amp; RECOVERY" />
+                    <TextBlock Style="{StaticResource PageTitleTextStyle}" Text="Repair &amp; Recovery" />
+                    <TextBlock Style="{StaticResource PageLeadTextStyle}" Text="{x:Bind ModuleSubtitle}" />
+                    <TextBlock
+                        Style="{StaticResource MutedBodyTextStyle}"
+                        Text="Use this page in order: scan repair candidates, review the proof, open only official repair surfaces, then copy or export the final advisory."
+                        TextWrapping="WrapWholeWords" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Border Style="{StaticResource WorkflowChipBorderStyle}">
+                            <TextBlock Style="{StaticResource WorkflowChipTextStyle}" Text="{x:Bind CandidateCountLabel}" />
+                        </Border>
+                        <Border Style="{StaticResource WorkflowChipBorderStyle}">
+                            <TextBlock Style="{StaticResource WorkflowChipTextStyle}" Text="{x:Bind ActiveAdvisoryScopeLabel}" />
+                        </Border>
+                        <Border Style="{StaticResource WorkflowChipBorderStyle}">
+                            <TextBlock Style="{StaticResource WorkflowChipTextStyle}" Text="Official links only" />
+                        </Border>
+                    </StackPanel>
+                    <Border Style="{StaticResource CommandSurfaceCardStyle}">
+                        <StackPanel Spacing="8">
+                            <TextBlock Style="{StaticResource SectionEyebrowTextStyle}" Text="Current contract" />
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Scan, prove, route, then export" />
+                            <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ModuleStatusLine}" TextWrapping="WrapWholeWords" />
+                            <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind ActionStatusLine}" TextWrapping="WrapWholeWords" />
+                        </StackPanel>
+                    </Border>
                     <CommandBar Style="{StaticResource ActionCommandBarStyle}">
                         <CommandBar.PrimaryCommands>
                             <AppBarButton Click="RefreshRepairScan_Click" Label="Scan repair candidates" />
@@ -33,14 +50,49 @@
                             <AppBarButton Click="OpenRegistryRepairBackupFolder_Click" IsEnabled="{x:Bind HasRegistryRepairBackup}" Label="Open last registry backup" />
                         </CommandBar.SecondaryCommands>
                     </CommandBar>
-                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ActionStatusLine}" TextWrapping="WrapWholeWords" />
-                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="Repairs stay evidence-based. Runtime and missing-DLL issues are advisory only and always route to Microsoft or the official vendor repair path." TextWrapping="WrapWholeWords" />
-                    <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="AegisTune does not download DLLs from third-party mirror sites or inject unknown binaries into application folders." TextWrapping="WrapWholeWords" />
-                    <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind CandidateCountLabel}" />
+                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Repairs stay evidence-based. Runtime and missing-DLL issues are advisory only and always route to Microsoft or the official vendor repair path." TextWrapping="WrapWholeWords" />
+                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="AegisTune does not download DLLs from third-party mirror sites or inject unknown binaries into application folders." TextWrapping="WrapWholeWords" />
                 </StackPanel>
             </Border>
 
-            <Border Style="{StaticResource SurfaceCardStyle}">
+            <Grid ColumnSpacing="16" RowSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource CommandSurfaceCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource SectionEyebrowTextStyle}" Text="Lane 1" />
+                        <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Repair queue" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind CandidateCountLabel}" />
+                        <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="Start here for the current scan, registry repair packs, leftovers, and official app recovery routes." TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Style="{StaticResource CommandSurfaceCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource SectionEyebrowTextStyle}" Text="Lane 2" />
+                        <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Manual dependency triage" />
+                        <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ManualStatusLine}" TextWrapping="WrapWholeWords" />
+                        <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Paste exact DLL, SideBySide, or launch errors when you need a supported remediation path." TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Style="{StaticResource CommandSurfaceCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource SectionEyebrowTextStyle}" Text="Lane 3" />
+                        <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Undo and rollback" />
+                        <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind UndoCenterSummaryLine}" TextWrapping="WrapWholeWords" />
+                        <TextBlock Style="{StaticResource CaptionTextStyle}" Text="Use Safety &amp; Undo or the repair undo list only when you have matching evidence and a recorded backup." TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <TextBlock Style="{StaticResource SectionEyebrowTextStyle}" Text="Guided workspace" />
+
+            <Border Style="{StaticResource CommandSurfaceCardStyle}">
                 <StackPanel Spacing="12">
                     <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Manual dependency triage" />
                     <TextBlock
@@ -82,7 +134,7 @@
                 </StackPanel>
             </Border>
 
-            <Border Style="{StaticResource SurfaceCardStyle}">
+            <Border Style="{StaticResource CommandSurfaceCardStyle}">
                 <StackPanel Spacing="8">
                     <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Advisory export" />
                     <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind ActiveAdvisoryScopeLabel}" />
@@ -95,7 +147,7 @@
                 </StackPanel>
             </Border>
 
-            <Border Style="{StaticResource SurfaceCardStyle}">
+            <Border Style="{StaticResource CommandSurfaceCardStyle}">
                 <StackPanel Spacing="10">
                     <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Undo center" />
                     <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind UndoCenterSummaryLine}" TextWrapping="WrapWholeWords" />
@@ -112,6 +164,8 @@
                     <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind UndoJournalStoragePathLabel}" TextWrapping="WrapWholeWords" />
                 </StackPanel>
             </Border>
+
+            <TextBlock Style="{StaticResource SectionEyebrowTextStyle}" Text="Recorded changes" />
 
             <ItemsControl ItemsSource="{x:Bind UndoEntries}">
                 <ItemsControl.ItemTemplate>
@@ -143,6 +197,8 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+
+            <TextBlock Style="{StaticResource SectionEyebrowTextStyle}" Text="Manual or scanned candidates" />
 
             <ItemsControl ItemsSource="{x:Bind ManualCandidates}">
                 <ItemsControl.ItemTemplate>
@@ -184,6 +240,7 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
+            <TextBlock Style="{StaticResource SectionEyebrowTextStyle}" Text="Official surfaces" />
             <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Official repair links" />
 
             <ItemsControl ItemsSource="{x:Bind OfficialResources}">
@@ -199,6 +256,8 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+
+            <TextBlock Style="{StaticResource SectionEyebrowTextStyle}" Text="Current repair queue" />
 
             <ItemsControl ItemsSource="{x:Bind Candidates}">
                 <ItemsControl.ItemTemplate>
@@ -239,6 +298,8 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+
+            <TextBlock Style="{StaticResource SectionEyebrowTextStyle}" Text="Playbook" />
 
             <ItemsControl ItemsSource="{x:Bind Playbook}">
                 <ItemsControl.ItemTemplate>

@@ -36,6 +36,17 @@
                             Style="{StaticResource MutedBodyTextStyle}"
                             Text="{x:Bind DashboardContextLine}"
                             TextWrapping="WrapWholeWords" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Style="{StaticResource WorkflowChipBorderStyle}">
+                                <TextBlock Style="{StaticResource WorkflowChipTextStyle}" Text="{x:Bind IssueChipLabel}" />
+                            </Border>
+                            <Border Style="{StaticResource WorkflowChipBorderStyle}">
+                                <TextBlock Style="{StaticResource WorkflowChipTextStyle}" Text="{x:Bind ReadyChipLabel}" />
+                            </Border>
+                            <Border Style="{StaticResource WorkflowChipBorderStyle}">
+                                <TextBlock Style="{StaticResource WorkflowChipTextStyle}" Text="{x:Bind SessionChipLabel}" />
+                            </Border>
+                        </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Button
                                 Click="StartGuidedReview_Click"
@@ -46,6 +57,30 @@
                                 Content="Open reports"
                                 Style="{StaticResource SecondaryCtaButtonStyle}" />
                         </StackPanel>
+                        <Border Style="{StaticResource CommandSurfaceCardStyle}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Style="{StaticResource SectionEyebrowTextStyle}" Text="Start here" />
+                                <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{x:Bind WorkflowSummary}" />
+                                <TextBlock
+                                    Style="{StaticResource MutedBodyTextStyle}"
+                                    Text="Use Home to pick the next module, then stay inside that workspace until you either export, verify, or undo the action."
+                                    TextWrapping="WrapWholeWords" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Border Style="{StaticResource WorkflowChipBorderStyle}">
+                                        <TextBlock Style="{StaticResource WorkflowChipTextStyle}" Text="1. Review" />
+                                    </Border>
+                                    <Border Style="{StaticResource WorkflowChipBorderStyle}">
+                                        <TextBlock Style="{StaticResource WorkflowChipTextStyle}" Text="2. Act" />
+                                    </Border>
+                                    <Border Style="{StaticResource WorkflowChipBorderStyle}">
+                                        <TextBlock Style="{StaticResource WorkflowChipTextStyle}" Text="3. Verify" />
+                                    </Border>
+                                    <Border Style="{StaticResource WorkflowChipBorderStyle}">
+                                        <TextBlock Style="{StaticResource WorkflowChipTextStyle}" Text="4. Undo if needed" />
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
 
                     <Border
@@ -103,13 +138,14 @@
                 </Grid>
             </Border>
 
-            <Border Style="{StaticResource SurfaceCardStyle}">
+            <Border Style="{StaticResource CommandSurfaceCardStyle}">
                 <Grid ColumnSpacing="16" RowSpacing="12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Spacing="8">
+                        <TextBlock Style="{StaticResource SectionEyebrowTextStyle}" Text="Live feed" />
                         <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="App updates" />
                         <TextBlock Style="{StaticResource MutedBodyTextStyle}" Text="{x:Bind UpdateHeroLine}" TextWrapping="WrapWholeWords" />
                         <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{x:Bind UpdateDetailLine}" TextWrapping="WrapWholeWords" />
@@ -171,6 +207,7 @@
                 </Border>
             </Grid>
 
+            <TextBlock Style="{StaticResource SectionEyebrowTextStyle}" Text="Guided queue" />
             <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Recommended next" />
 
             <ItemsControl ItemsSource="{x:Bind PriorityModules}">
@@ -207,6 +244,7 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
+            <TextBlock Style="{StaticResource SectionEyebrowTextStyle}" Text="Full workspace" />
             <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="All modules" />
 
             <ItemsControl ItemsSource="{x:Bind Modules}">
@@ -261,6 +299,7 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
+            <TextBlock Style="{StaticResource SectionEyebrowTextStyle}" Text="Session history" />
             <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Recent activity" />
 
             <ItemsControl ItemsSource="{x:Bind Activities}">

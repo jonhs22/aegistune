@@ -73,6 +73,12 @@ public sealed partial class DashboardPage : Page
 
     public string SessionModeLabel => Snapshot?.Settings.DryRunEnabled == true ? "Preview-first" : "Action-ready";
 
+    public string IssueChipLabel => $"{TotalIssueCount:N0} issues";
+
+    public string ReadyChipLabel => $"{ReadyModuleCountLabel} ready";
+
+    public string SessionChipLabel => SessionModeLabel;
+
     public ModuleSnapshot? PrimaryModule => PriorityModules.FirstOrDefault();
 
     public string HeroSummaryLine => PrimaryModule is null
