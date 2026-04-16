@@ -108,16 +108,19 @@ jobs:
         shell: pwsh
         run: |
           $channel = "${{ github.event.inputs.channel || 'stable' }}"
-          $stageArgs = @(
-            '-Channel', $channel,
-            '-ProductPath', 'aegistune',
-            '-SiteRoot', '.\artifacts\pages-site',
-            '-PublicBaseUrl', "${{ steps.update-base.outputs.public_base_url }}",
-            '-CName', "${{ vars.UPDATE_CNAME }}"
-          )
+          $stageArgs = @{
+            Channel = $channel
+            ProductPath = 'aegistune'
+            SiteRoot = '.\artifacts\pages-site'
+            PublicBaseUrl = "${{ steps.update-base.outputs.public_base_url }}"
+          }
+
+          if (-not [string]::IsNullOrWhiteSpace("${{ vars.UPDATE_CNAME }}")) {
+            $stageArgs.CName = "${{ vars.UPDATE_CNAME }}"
+          }
 
           if ('${{ github.event_name }}' -ne 'push' -and '${{ github.event.inputs.include_msix }}' -ne 'true') {
-            $stageArgs += '-PortableOnly'
+            $stageArgs.PortableOnly = $true
           }
 
           .\scripts\stage-update-feed-for-pages.ps1 @stageArgs
